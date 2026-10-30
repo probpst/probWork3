@@ -69,8 +69,22 @@ mon = os.path.join(d, 'Duct_monitor.dat')
 if os.path.exists(mon):
     M = np.loadtxt(mon, comments='#')
     if M.ndim == 1: M = M[None, :]
-    print(f'monitor: {len(M)} steps, max CFL {M[:,2].max():.3f}, max |div|max {M[:,7].max():.3e}, max itp {int(M[:,10].max())}, '
-          f'max res(p) {M[:,11].max():.2e}')
+    print(f'monitor: {len(M)} steps, max CFL {M[:,2].max():.3f}, max |div|max {M[:,7].max():.3e}, max itm {int(M[:,9].max())}, '
+          f'max res(u*) {M[:,10].max():.2e}, max itp {int(M[:,11].max())}, max res(p) {M[:,12].max():.2e}')
+pf = os.path.join(d, 'Output_data', 'Duct_patch_flux.dat')
+if os.path.exists(pf):
+    # solver-integrated outlet flux (patch_flux.F90): exact face fluxes, every Data_Intvl steps
+    F = np.loadtxt(pf, comments='#')
+    if F.ndim == 1: F = F[None, :]
+    tt = F[:, 1]; Q = F[:, -1]                                   # last column = sum over the groups = outflow
+    qe = -dVdt(tt); peak = abs(qe).max()
+    sel = abs(qe) > 0.05 * peak
+    rel = np.abs(Q[sel] - qe[sel]) / np.abs(qe[sel])
+    print(f'patch flux (solver): {len(F)} records, outflow vs -dV/dt where |dV/dt| > 5% of peak: '
+          f'max rel.err {rel.max():.3e}, mean {rel.mean():.3e}; cumulative volume out {np.trapezoid(Q, tt)*1e6:.4f} mL '
+          f'vs exact {(V(tt[0]) - V(tt[-1]))*1e6:.4f} mL')
+    for i in range(0, len(F), max(1, len(F) // 10)):
+        print(f'  t {tt[i]:8.4f}  Q_out {Q[i]*1e6:10.4f} mL/s  -dV/dt {qe[i]*1e6:10.4f}  rel.err {((Q[i]-qe[i])/qe[i] if abs(qe[i])>0.05*peak else float("nan")):9.2e}')
 cd = os.path.join(d, 'Check_grid_movement')
 if os.path.isdir(cd):
     print('Mode 2 grids:')

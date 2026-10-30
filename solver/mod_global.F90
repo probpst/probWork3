@@ -379,6 +379,7 @@ module global_vars
      integer,  allocatable :: bc_dir(:)
      integer,  allocatable :: bc_irng(:,:), bc_jrng(:,:), bc_krng(:,:)
      integer,  allocatable :: bc_flag(:,:)         ! (6, patch): u,v,w,p,alpha,T (Cartesian)
+     character(len=48), allocatable :: bc_label(:) ! (patch): the comment of the direction line of the .bcs record (patch_flux.F90, H1)
      real(dp), allocatable :: bc_tinf(:)           ! (patch): T line flag 4: ambient temperature T_inf [K] (bc_val(6) = h)
      logical :: pole(2,3) = .false.                ! (side, axis): degenerate (pole)
                                                    !   face, from the .bcs_b2b file

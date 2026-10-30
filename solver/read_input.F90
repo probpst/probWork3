@@ -1191,6 +1191,7 @@ subroutine read_bcs
   integer :: nbf, nb, d, fl1, rr(2,3), npb, ip, nbp, tolb, nxl, xfl(2), n_t_lines, n_wave_patches
   real(dp) :: tol_file, xv1(2), xv2(2)
   character(len=256) :: line
+  character(len=48)  :: label
   character(len=128) :: fname
 
   ! pole (degenerate) faces found by the interface search: they get an
@@ -1236,11 +1237,18 @@ subroutine read_bcs
      allocate(blk(b)%bc_dir(max(nbf+npb,1)), blk(b)%bc_irng(2,max(nbf+npb,1)),    &
               blk(b)%bc_jrng(2,max(nbf+npb,1)), blk(b)%bc_krng(2,max(nbf+npb,1)))
      allocate(blk(b)%bc_flag(6,max(nbf+npb,1)), blk(b)%bc_val(6,max(nbf+npb,1)), blk(b)%bc_tinf(max(nbf+npb,1)))
-     allocate(blk(b)%bc_eflag(3,max(nbf+npb,1)))
-     blk(b)%bc_flag = 0;  blk(b)%bc_val = 0.0_dp;  blk(b)%bc_eflag = 0;  blk(b)%bc_tinf = 0.0_dp
+     allocate(blk(b)%bc_eflag(3,max(nbf+npb,1)), blk(b)%bc_label(max(nbf+npb,1)))
+     blk(b)%bc_flag = 0;  blk(b)%bc_val = 0.0_dp;  blk(b)%bc_eflag = 0;  blk(b)%bc_tinf = 0.0_dp;  blk(b)%bc_label = ' '
      nb = 0
      do n = 1, nbf
         call next_line(iu, line);  read(line,*) d
+        label = ' '                                         ! the comment of the direction line names the patch (H1)
+        m = index(line, '!')
+        if (m > 0) then
+           label = adjustl(line(m+1:))
+           m = index(label, '(type')
+           if (m > 1) label = label(1:m-1)
+        end if
         call next_line(iu, line);  read(line,*) rr(:,1)
         call next_line(iu, line);  read(line,*) rr(:,2)
         call next_line(iu, line);  read(line,*) rr(:,3)
@@ -1263,6 +1271,7 @@ subroutine read_bcs
            !--------------- Dirichlet / Neumann surface -----------------
            nb = nb + 1
            blk(b)%bc_dir(nb)    = d
+           blk(b)%bc_label(nb)  = trim(label)
            blk(b)%bc_irng(:,nb) = rr(:,1)
            blk(b)%bc_jrng(:,nb) = rr(:,2)
            blk(b)%bc_krng(:,nb) = rr(:,3)

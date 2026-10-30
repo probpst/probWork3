@@ -77,10 +77,13 @@ if os.path.exists(pf):
     F = np.loadtxt(pf, comments='#')
     if F.ndim == 1: F = F[None, :]
     tt = F[:, 1]; Q = F[:, -1]                                   # last column = sum over the groups = outflow
-    qe = -dVdt(tt); peak = abs(qe).max()
+    # the record of step n is the flux of the corrected field over the step (t_n-1, t_n): compare with the
+    # mean rate -(V(t_n) - V(t_n-1)) / dt rather than the instantaneous -dV/dt at t_n (half-step lag otherwise)
+    Vt = np.array([V(x) for x in tt]); qe = np.zeros_like(Q); qe[1:] = -(Vt[1:] - Vt[:-1]) / np.diff(tt)
+    peak = abs(qe).max()
     sel = abs(qe) > 0.05 * peak
     rel = np.abs(Q[sel] - qe[sel]) / np.abs(qe[sel])
-    print(f'patch flux (solver): {len(F)} records, outflow vs -dV/dt where |dV/dt| > 5% of peak: '
+    print(f'patch flux (solver): {len(F)} records, outflow vs the step-mean -dV/dt where |dV/dt| > 5% of peak: '
           f'max rel.err {rel.max():.3e}, mean {rel.mean():.3e}; cumulative volume out {np.trapezoid(Q, tt)*1e6:.4f} mL '
           f'vs exact {(V(tt[0]) - V(tt[-1]))*1e6:.4f} mL')
     for i in range(0, len(F), max(1, len(F) // 10)):

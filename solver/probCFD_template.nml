@@ -1,0 +1,851 @@
+!=====================================================================
+! probCFD_부산 name list  -  GPPH: planing hull + stern drive + propeller, two-phase (air/water)
+!   6-DoF hierarchy (update 14): body 1 = hull, child body 1 = stern drive,
+!   sub-child body 1 = propeller + hub (rows 6-8 of Input_polyMesh_probCFD.csv)
+!
+!  Format: groups "$Name ... /end", one "Variable = value(s)" per line,
+!  text after "!" is a comment, variable names are case-insensitive,
+!  values separated by commas or blanks.  A misspelled variable name
+!  stops the run with a message (nothing is silently ignored).  Every
+!  variable has a default; a whole group may be omitted.
+!=====================================================================
+
+$Case_title
+  Mode                 = 2            !0 = standard run (from time step 0), 1 = restart from the latest <case>_NNNNNNNN.rsto,
+                                      !2 = GRID-MOVEMENT CHECK of the imposed motions (update 14b): no flow solution, the
+                                      !  moving grids follow their impose motion files and are written every Output_Intvl
+                                      !  steps to Check_grid_movement/<case>_NNNNNNNN.grd (+ <case>_movement.dat with the
+                                      !  attitudes); check the movement in Tecplot / ParaView, then set Mode = 0 for the CFD
+  Moving_BGR           = 0            !MOVING BACKGROUND (update 20): 0 = the background blocks (Object_ID = 0 in the csv)
+                                      !  are fixed; 1 = they follow the Body BGR_Following_Body as one rigid group in the
+                                      !  DOFs permitted by Moving_BGR_DoF (CFDShip-Iowa's mesh_moving = 2 / is#_o):
+                                      !  the hull blocks move relative to the background only in the other DOFs, the
+                                      !  far field (waves, bottom, still water) stays earth-fixed.  Dirichlet velocities
+                                      !  and wave values on the background blocks are EARTH-frame values (no grid
+                                      !  velocity added): a free-running ship has U_inf = 0 and moves through the water.
+                                      !  Restart: the same Moving_BGR as the file (one more state record); output
+                                      !  Output_data/<case>_bgr_motion.dat every Data_Intvl steps
+  Moving_BGR_DoF       = 1 1 0 0 0 1  !permitted DOFs of the following (surge sway heave roll pitch yaw), 0/1:
+                                      !  1 1 0 0 0 1 = planar motion (manoeuvring in waves: the still-water level stays
+                                      !  horizontal), 1 1 1 1 1 1 = the whole motion (hull and background rigid together)
+  BGR_Following_Body   = 1            !the Body (level 1 of $SixDOF) whose motion is followed; a child / sub-child
+                                      !  cannot be followed; the background rotates about that body's Rot_Center
+  Moving_BGR_Filter_T  = 0.0          !first-order low-pass of the followed motion [s] (0 = exact body motion; e.g. one
+                                      !  wave period to keep the wave-frequency surge / sway out of the background)
+  Case_name            = "GPPH"
+                                        !  GPPH.grd, GPPH.bcs, Volume_solutions_grids/GPPH_NNNNNNNN.grd/.p3d,
+                                        !  GPPH_monitor.dat, Output_data/GPPH_*.dat, GPPH_NNNNNNNN.rsto
+/end
+
+
+$Control
+ Char_L                = 1.30           !Characteristic length [m] (hull length overall)
+ Char_U                = 1.0            !Characteristic velocity [m/s] (inflow = model speed)
+ Del_T                 = 0.0005         !Time step [s]: the propeller (10 rev/s) turns 1.8 deg per step, the
+                                        !  stern drive (45 deg/s) 0.0225 deg per step
+ End_T                 = 1.2            !End time [s] (steps = End_T / Del_T = 2400): Mode = 2 check of the full stern-drive
+                                        !  turn (0 -> +45 deg in 1.0 s, held afterwards) and 12 propeller revolutions; the
+                                        !  impose motion tables cover 2.1 s (set End_T = 2.0 for the CFD run)
+ FreeSurf_Z            = 0.0            !Static free surface location [m]: liquid (alpha = 1)
+                                        !  fills z < FreeSurf_Z initially and at inlets with alpha flag 2
+ Grvty                 = 0, 0, -9.81    !Gravity acceleration vector (gx, gy, gz) [m/s2]
+/end
+
+
+$Fluid_Properties
+ Num_of_Phase          = 2              !Integer value [1 or 2]: 1 = single phase (fluid "w" only),
+                                        !  2 = two-phase VoF (alpha = 1 fluid "w", alpha = 0 fluid "a")
+ Lou_w                 = 1000.0         !Water density   [kg/m3]   (fluid 1, alpha = 1)
+ mu_w                  = 0.001          !Water viscosity [kg/(ms)]
+ Lou_a                 = 1.2            !Air density     [kg/m3]   (fluid 2, alpha = 0)
+ mu_a                  = 0.000018       !Air viscosity   [kg/(ms)]
+/end
+
+
+$Reference_Pressure
+ SW_Ref_Prs            = 0              !1 only when ALL pressure BCs are zero-gradient: the level
+                                        !  is then pinned to RefPrs at the cell containing Loc_X/Y/Z.
+                                        !  Here the top boundary has p = 0 Dirichlet -> 0
+ Loc_X                 = 0.0            !reference location [m]
+ Loc_Y                 = 0.0
+ Loc_Z                 = 0.0
+ RefPrs                = 0.0            !reference pressure [Pa]
+/end
+
+
+$Cell_Initial_Condition
+ u_cel_initial         = 1.0            !initial velocity [m/s], uniform in both phases.  With
+                                        !  u_cel_initial = inlet speed and t_ramp > 0 the run is a
+                                        !  towing-tank start: the far field is steady from the
+                                        !  first step and the cylinder wall velocity decelerates
+                                        !  1 -> 0 m/s over t_ramp (no impulsive pressure, no
+                                        !  acceleration tilt of the free surface); with 0 it is a
+                                        !  ramped inflow into a channel at rest
+ v_cel_initial         = 0.0
+ w_cel_initial         = 0.0
+ a_cel_initial         = 0.0            !initial volume fraction of the cells ABOVE FreeSurf_Z
+                                        !  (0 = air; the cells below are always liquid, alpha = 1)
+ p_cel_initial         = 0.0            !initial pressure [Pa]
+/end
+
+
+$Solver_Iteration
+ Iner_Itn              = 1              !inner iterations per time step: momentum predictor,
+ Time_scheme           = 1            !1 = existing scheme (1st order in time), 2 = 2nd-order SSP (Heun; two stages per step)
+                                        !  Poisson and correction (two-phase: also the VoF
+                                        !  transport from alpha^n) are repeated Iner_Itn times,
+                                        !  the advecting fluxes, the explicit terms and the 2nd-
+                                        !  order deferred correction taken from the latest iterate
+                                        !  (Picard iteration towards the fully implicit step).
+                                        !  1 = classic non-iterative fractional step
+
+ Max_Itr_Vel           = 200            !momentum predictor: maximum Jacobi sweeps (all 3 components
+                                        !  in one loop)
+ Min_Itr_Vel           = 1              !minimum sweeps
+ Rsd_Lmt_Vel           = 1.0e-9         !convergence: true algebraic residual ||b - A u*||_inf / ||b||_inf
+ SOR_fct_Vel           = 0.8            !weighted-Jacobi factor (0 < f <= 1; 0.8 converges in about
+                                        !  half the sweeps of 1.0 on this case)
+
+ Max_Itr_Prs           = 20000          !pressure: total inner iterations per step (overset cases: coupled
+                                      !  inner BiCGSTAB inside FGMRES, a few thousand per step)
+                                        !  iterations; poi_solver 1: Jacobi sweeps)
+ Min_Itr_Prs           = 1              !minimum iterations
+ Trl_Lmt_Prs           = 1.0e-7         !UPDATE-NORM limit max|p_new - p_old| (non-dimensional,
+                                        !  p/(Lou_w Char_U^2)): the criterion of poi_solver = 1 (Jacobi)
+ Rsd_Lmt_Prs           = 1.0e-6         !RESIDUAL limit ||b - A p||_inf / ||b||_inf: the criterion
+                                        !  of poi_solver = 2 (FGMRES + PCG).  Both norms are reported
+                                        !  every step for both solvers
+ SOR_fct_Prs           = 1.0            !weighted-Jacobi factor of poi_solver = 1
+
+ Max_Itr_VoF           = 200            !VoF (vof_scheme = 2, implicit CICSAM): maximum weighted-
+                                        !  Jacobi sweeps per sub-cycle
+ Min_Itr_VoF           = 1              !minimum sweeps
+ Rsd_Lmt_VoF           = 1.0e-9         !convergence: true algebraic residual of the scaled cell
+                                        !  equation, max |alpha^n - alpha - dt/V sum_f F_f alpha_f|
+ SOR_fct_VoF           = 1.0            !weighted-Jacobi factor
+/end
+
+
+$Export_Interval
+ Output_Intvl          = 20             !Mode = 0: solution files every Output_Intvl steps; Mode = 2: one grid file every
+                                        !  Output_Intvl steps = every 0.01 s here (36 deg of propeller rotation, 0.45 deg of
+                                        !  steering per file; 121 files of 11.6 MB over 1.2 s)
+ Restart_Intvl         = 0            !restart file <case>_NNNNNNNN.rsto every N steps (0 = none; the last step is written when > 0)
+ Data_Intvl            = 1              !6-DoF force / moment / motion files every Data_Intvl steps (update 12);
+                                        !  the probe-point files too (update 22)
+ Log_Intvl             = 1              !screen monitor block every Log_Intvl steps (the monitor
+                                        !  file GPPH_monitor.dat gets every step)
+ SW_Prs_Frc_surf       = 1              !update 22: 1 = write the solid-wall surface files with every volume solution:
+                                        !  Volume_solutions_grids/<case>_surf_NNNNNNNN.grd / .p3d, one PLOT3D block
+                                        !  (ni x nj x 1 nodes) per no-slip / wall-function patch, six variables [Pa]:
+                                        !  Prs_x Prs_y Prs_z = pressure stress vector -p n on the wall (n into the fluid),
+                                        !  Frc_x Frc_y Frc_z = friction stress vector on the wall (wall function included).
+                                        !  The node values are dual-area averages of the face values the force integration
+                                        !  sums, so the trapezoidal integration over a patch (mean of its 4 node values x
+                                        !  face area, e.g. Tecplot "Integrate") gives the pressure / friction force of the
+                                        !  Output_data force files exactly (<case>_surf_patches.txt lists zone -> block,
+                                        !  patch, body).  0 = off (default)
+ Frame_Prs_Frc_surf    = 0              !frame of the surface files: 0 earth-fixed = the grid axes of the volume files
+                                        !  (the moved grid when the background moves), 1 = the background grid frame
+                                        !  (coordinates and vectors turned back by the background pose; the same as 0
+                                        !  unless Moving_BGR = 1)
+/end
+
+
+$Numerical_Scheme
+ Cnvt_scheme           = 2              !2nd-order upwind (1 1st-order upwind, 3 QUICK, 4 2nd-order ENO)
+                                        !  2 = 2nd-order upwind, 3 = QUICK, 4 = 2nd-order ENO
+                                        !  (implicit directions: higher-order part as deferred
+                                        !  correction from the latest iterate -> use Iner_Itn = 2;
+                                        !  explicit directions: keep cfl_switch <= 0.3 for 2/3/4,
+                                        !  QUICK needs Cnvt_mode = 2)
+ curvi_form            = 1              !face unknown: 1 = unweighted transformed component U^q,
+                                        !  2 = J-weighted volume flux F^q = J U^q
+ Prs_form              = 1              !pressure form of the fractional step (update 16): 1 = non-incremental
+                                        !  (existing: the Poisson equation gives the full pressure), 2 = incremental
+                                        !  (grad p^n in the predictor, the increment is projected; the body force no
+                                        !  longer passes through the implicit viscous operator - use 2 for gravity /
+                                        !  buoyancy-driven flows on wall-clustered grids: with 1 a fluid at rest
+                                        !  develops spurious velocities at no-slip walls where VN >= vn_switch)
+ Cnvt_mode             = 3              !convection time integration: 1 = explicit, 2 = implicit,
+                                        !  3 = hybrid per i/j/k direction: implicit where the local
+                                        !      CFL number dt |U^q| >= cfl_switch
+ Dffs_mode             = 3              !diffusion: 1 = explicit, 2 = implicit, 3 = hybrid per
+                                        !  direction: implicit where dt nu |grad xi_q|^2 >= vn_switch
+ SW_Quasi_2D           = 0              !update 24c: 3 = strictly two-dimensional across the grid's k direction (the span of
+                                        !  an extruded quasi-2-D grid, k_split = 1): after every velocity correction w = 0 and
+                                        !  the fields are averaged along k (keeps the discrete continuity); 0 = off
+ cfl_switch            = 0.3            !CFL threshold of the hybrid switch: explicit 2nd-order upwind
+                                      !  needs CFL < 0.5 per direction; above it the direction is implicit
+ vn_switch             = 0.5            !Von Neumann threshold of the hybrid diffusion switch
+ poi_solver            = 2              !1 = point Jacobi (criterion Trl_Lmt_Prs),
+                                        !  2 = FGMRES + 7-point PCG (criterion Rsd_Lmt_Prs);
+                                        !  use 2 for two-phase cases
+ poi_precond           = 2              !PCG preconditioner of poi_solver 2: 1 = Jacobi,
+                                        !  2 = line symmetric Gauss-Seidel (tridiagonal solves along
+                                        !      the strongest-coupled grid direction of each block;
+                                        !      about 6x fewer CG iterations on this grid)
+ vof_scheme            = 2              !1 = explicit CICSAM, 2 = implicit CICSAM (iterative,
+                                        !  Rsd_Lmt_VoF criterion), 3 = GEOMETRIC PLIC VoF (direction-
+                                        !  split, Weymouth-Yue; face Courant <= min(vof_cfl_max, 0.5))
+                                        !  all sub-cycled by vof_cfl_max
+ vof_cfl_max           = 0.5            !VoF sub-cycling: donor-cell Courant number limit
+ t_ramp                = 0.05           !towing-tank start: the wall velocity goes 1 -> 0 m/s over 0.05 s
+                                        !  velocity to their .bcs values over t_ramp [s] (0 = none)
+ b2b_tol               = 1.0e-8         !node coincidence tolerance [m] of the block-to-block
+                                        !  interface search
+/end
+ TURB_model            = 0            !turbulence: 0 none, 1 Spalart-Allmaras, 2 k-epsilon, 3 k-omega, 4 k-omega SST
+ IDDES_model           = 0            !1 = IDDES hybrid RANS/LES on top of TURB_model (0 with TURB_model = 0: WMLES branch only)
+
+ Max_Itr_Turb          = 20           !turbulence equations: SOR sweeps max / min, residual limit, relaxation
+ Min_Itr_Turb          = 1
+ Rsd_Lmt_Turb          = 1.0e-4
+ SOR_fct_Turb          = 1.0
+ Cnvt_scheme_Turb      = 1            !1 = 1st-order upwind, 2 = 2nd-order upwind (deferred correction)
+ Cnvt_mode_Turb        = 2            !convection 1 = explicit (sub-cycled to cfl_switch_Turb), 2 = implicit
+ Dffs_mode_Turb        = 2            !diffusion  1 = explicit (sub-cycled to vn_switch_Turb),  2 = implicit
+ cfl_switch_Turb       = 0.5
+ vn_switch_Turb        = 0.5
+
+
+
+$Overset
+ SW_Ovst               = -1           !-1 automatic: on when a block face is neither in the .bcs nor a
+                                      !  block-to-block face (the O-grid outer boundary here), 0 off
+ Surfovl_tol           = 1.0e-3       !tolerance [m] of the wall-patch overlap / domain-boundary tests
+ Ovst_fringe           = 2            !interpolated cell layers (2nd-order stencils)
+ Ovst_vol_tol          = 1.0e-6       !relative cell-volume tolerance of "the finer grid is active"
+ Ovst_Reassemble_Tol   = 0.0          !dynamic overset (update 20): the assembly is redone only when a moving part has
+                                      !  moved more than this [m] RELATIVE to the background (to the fixed grid without
+                                      !  Moving_BGR) since the last assembly - rotation centre and three unit offsets
+                                      !  checked; 0 = every moving step (as before).  Use a fraction of the fringe cell
+                                      !  size (e.g. 0.1 cell); the log reports the re-used steps
+ Ovst_only             = 0            !1 = grid check only (writes <case>.ovst, <case>.x, <case>_iblank.q)
+ Ovst_inner_max        = 150          !inner BiCGSTAB iterations per FGMRES preconditioner application
+ Ovst_inner_tol        = 1.0e-2       !  and its relative residual reduction (coupled pressure solve)
+ poi_verbose           = 0            !1 = print the FGMRES / BiCGSTAB history
+/end
+
+$SixDOF
+!---------------------------------------------------------------------------------------------
+! 6-DoF rigid-body motion with CHILD and SUB-CHILD bodies (sixdof.F90, update 14).
+!
+! The parts are defined by rows 6-8 of Input_polyMesh_probCFD.csv:
+!   Object_ID           body id of every block (0 = background block 32):
+!                       blocks 1-2 hull, 31 hull refinement  -> body 1
+!   Child_Object_ID     child body of that body the block belongs to (0 = the body itself):
+!                       blocks 3-20 stern-drive housing, 30 drive/propeller refinement -> child 1
+!   Sub_Child_Object_ID sub-child of that child (0 = the child itself):
+!                       blocks 21-29 propeller blades + hub -> sub-child 1 of child 1
+! The name list lists the parts in the same order: [Body 1] [Child_body 1] [Sub_child_body 1]
+! ([Child_body 2] ... [Body 2] ...).  A Child_body line must follow the Body it belongs to, a
+! Sub_child_body line the Child_body it belongs to; Mother_body / Mother_child_body repeat
+! those ids and are checked.
+!
+! Frames (SNAME / Fossen): x forward (= -x grid), y starboard (= y grid), z DOWN (= -z grid).
+! Every part has its own body frame, aligned with the earth frame at t = 0, origin at its
+! Rot_Center.  Positions (CG, Rot_Center) are GRID coordinates in metres.  Inertia and
+! Prod_Inertia are about the part's OWN CG in its OWN axes.
+! Motion_DOF per DOF (surge sway heave roll pitch yaw): 0 fixed, 1 imposed, 2 free.
+!   body      : eta = absolute motion in the earth frame
+!   child     : eta = motion RELATIVE to the mother body (translation measured in the mother
+!               frame, Euler angles relative to the mother frame); DOF 0 = rigid with the mother
+!   sub-child : the same, relative to the mother child body
+! Mode = 2 (this file as delivered) only moves the grids by the impose motion files and writes
+! them to Check_grid_movement/ (free DOFs held, fixed children ride with their mothers); set
+! Mode = 0 for the flow simulation (and End_T = 2.0, Output_Intvl = 200 as you like).
+! Imposed-motion files (columns t  x y z [m]  phi theta psi [deg], cubic Hermite in time):
+!   body k      : <case>_body<k>_imposed.dat
+!   child c     : <case>_body<k>_child<c>_imposed.dat
+!   sub-child s : <case>_body<k>_child<c>_sub<s>_imposed.dat
+!   (or any name through Motion_File = "...").  Any rotation / translation / combination can
+!   be imposed through the Euler angles; tools/make_axis_rotation.py writes the table of a
+!   constant-speed rotation about an arbitrary (inclined) axis.
+! Coupling: the fluid wrench of a child (and of its sub-children) is transferred to the mother
+! at the mother's Rot_Center except the components along the child's FREE DOFs (a free-wheeling
+! propeller passes its thrust but not its torque; an IMPOSED rotation = motor-driven shaft
+! passes everything); the mother moves with the composite mass / CG / inertia of its subtree.
+! Output (every Data_Intvl steps) in the folder Output_data/:
+!   body      : <case>_{force,moment}_{body,earth}1.dat, <case>_motion1.dat (own walls; body
+!               and earth frames; absolute motion)
+!   child     : <case>_body1_child1_{force,moment,motion}.dat  (own walls, in the MOTHER BODY
+!               frame, moment about the child's O; motion relative to the mother body)
+!   sub-child : <case>_body1_child1_sub1_{force,moment,motion}.dat (relative to the mother child)
+! End marks (update 19): Body_End = -1, Child_body_End = -1, Sub_child_body_End = -1 close a
+! part (optional for old files).  FORCE MODELS (update 19, force_model.F90): "bodies without
+! a grid" - Force_model = n ... Force_model_End = -1 groups anywhere after the part they hang
+! on (Mother_body / Mother_child_body / Mother_sub_child_body; Mother_body = 0 = fixed in
+! space); up to 64 force models, any mix, any number per mother; a force model has no children.
+! The group is listed in full after the sub-child below.
+! PID CONTROLLERS (update 21, pid_control.F90): a block of PID_* lines inside a Body /
+! Child_body / Sub_child_body group or inside a Force_model group, opened by PID_use = 1 (one
+! controller per grid part, up to 4 per force model).  PID_type: 1 throttle (output = rotation
+! rate [rev/s]), 2 steering (output = angle [deg]), 3 direct force (output = one force / moment
+! component [N, N m] of a Force_type-3 point force, added to the formula value).  What the output
+! drives:  grid part + type 1/2: the part is ROTATED about PID_Axis through its Rot_Center (its
+! Motion_DOF is ignored; mother/child coupling as usual);  Hough-Ordway / BEM disk + type 1:
+! the output replaces Prop_RPS (Prop_RPS = initial value);  disk + type 2: the disk axis P1->P2
+! is turned about PID_Axis through PID_Axis_Center (default: the disk centre), Prop_RPS fixed;
+! point force + type 3: PID_Component names the component.  The measured variable is a
+! 6-DoF quantity of ANY part (PID_Target_body / _child_body / _sub_child_body, PID_Target_type
+! 1 = location eta: x y z [m] roll pitch yaw [deg] (a Body: earth frame; a child: relative to
+! its mother), 2 = velocity nu: u v w [m/s] roll_rate pitch_rate yaw_rate (or p q r) [deg/s]);
+! PID_Target_value lists up to 32 targets reached in sequence (the next one when the error has
+! stayed within PID_Target_tol for PID_Target_hold_T seconds).  Output = PID_Out_init + P e +
+! I int(e dt) - D d(measured)/dt, e = target - measured (angle errors wrapped to +-180 deg),
+! clipped to PID_Out_limit (anti-windup) and to PID_Rate_limit per second, frozen before
+! PID_Start_T.  The sign of the gains follows the actuator: positive gains when a positive
+! output drives the measured variable UP.  Output: Output_data/<case>_<part>_pid<i>.dat (step,
+! time, target index, target, measured, error, P, I, D terms, output, angle); the state is in the
+! restart file.  Annotated examples (commented out) in the child body and the force models below.
+!
+! FLUID-STRUCTURE INTERACTION (update 24, fsi.F90 / fsi_shell.F90): SW_FSI = 1 inside a Body /
+! Child_body / Sub_child_body group makes that part FLEXIBLE.  No structural grid is needed: the
+! part's closed wall surface (the no-slip patches of its blocks) is turned into a shell MID-SURFACE
+! whose local thickness is measured from the surface grid itself (a ray from every upper-side
+! node along the inward normal to the opposite side; Youngs_modulus, Poisson_ratio and Density
+! are uniform unless Submat regions are given).  The structure is a geometrically non-linear
+! (co-rotational, large rotations) MITC4 shell integrated with generalized-alpha and Newton
+! iterations; the fluid grid of the part morphs with the deformation (boundary-layer cells rigid
+! with the wall, the distortion absorbed towards the overset outer boundary) and the overset is
+! re-assembled; fluid and structure are coupled STRONGLY (sub-iterations with Aitken / interface
+! quasi-Newton relaxation inside every time step: the added mass of water is handled).  The rigid
+! motion of the part (imposed, free or PID-driven) is kept; the deformation is superposed in the
+! part's frame.  A wall patch that is not sheet-like (a tip cap) or overlaps a larger patch of the
+! same part is PASSIVE: its nodes follow the mid-surface of the other patches.  Density gives
+! Mass = Density x enclosed volume (or Mass gives Density); the wall surface files gain Disp_x/y/z
+! and vonMises; Output_data/<case>_fsi_<part>_node<n>.dat = displacement history of a monitor
+! node; <case>_fsi_<part>_shell.grd/.p3d = the mid-surface with thickness / material / clamp
+! flags; the structural states are in the restart file.  Keys: see the sub-child body below
+! (every line but SW_FSI, Youngs_modulus, Poisson_ratio, Density/Mass is optional).  Needs
+! Time_scheme = 1.  Verification: cases/FSI_PfS2a (Kalmbach & Breuer 2013 benchmark, Fabbri et
+! al. 2023), run-through case cases/KP505_FSI (flexible propeller blades); section 36 of
+! PROJECT_RECORD.md.
+!---------------------------------------------------------------------------------------------
+ Motion_Start_T        = 0.5            !free DOFs (hull heave / pitch) released from this time on [s]:
+                                        !  the hydrostatic pressure and the inflow (t_ramp) must have
+                                        !  settled first; the imposed propeller rotation starts at t = 0
+
+!---- body 1: hull (blocks 1, 2 and the refinement block 31) ----------------------------------
+ Body                  = 1
+ Mass                  = 6.21           !displacement of the hull at rest [kg] = 1000 kg/m3 x 6.21e-3 m3
+                                        !  (volume below z = 0 of the hull surface of the grid; the model
+                                        !  floats at its initial draft when Mass = rho x displaced volume)
+ CG                    = 2.145  0.0  0.02   !centre of gravity, grid frame [m]: x at the centre of buoyancy
+                                        !  (LCB of the grid hull = 2.145 m, 0.29 m fwd of the transom at
+                                        !  x = 2.439), 2 cm above the still water line
+ Rot_Center            = 2.145  0.0  0.02   !centre of rotation O = CG (moments and the motion file refer to it)
+ Motion_DOF            = 0 0 2 0 2 0    !surge sway heave roll pitch yaw: free heave + pitch (sinkage and
+                                        !  trim of the running hull), the rest fixed (towed model)
+ Inertia               = 0.105 0.388 0.388   !Ixx Iyy Izz about the CG, body axes [kg m2]: radii of gyration
+                                        !  0.13 m (0.35 B, B = 0.38 m) in roll, 0.25 m (0.25 L) in pitch / yaw
+ Prod_Inertia          = 0.0 0.0 0.0    !Ixy Ixz Iyz [kg m2] (symmetric hull: 0)
+ Added_Mass            = 0 0 6.0 0 0.4 0  !stabilizing added-mass estimate per DOF [kg, kg m2] for the
+                                        !  explicit fluid-body coupling (about the body mass / inertia for
+                                        !  the free heave and pitch; it does not change the converged result)
+ Motion_Damp           = 0 0 0 0 0 0    !artificial damping per DOF [1/s] (0 = none)
+ Probe_point1          = 2.60  0.00  0.00  !probe points following the hull (update 22, $Probe_background explains the
+ Probe_point2          = 1.50  0.15  0.05  !  files): position [m] in the grid frame at t = 0 -> Output_data/GPPH_body1_probe<n>.dat
+ Body_End              = -1             !end of body 1 (update 19; optional)
+
+!---- child body 1 of body 1: stern-drive housing (blocks 3-20 + refinement block 30) ----------
+! The out-board drive turns like a rudder about its STEERING AXIS, given by the two points
+!   Point1 = (1.0295788, 0, 0.0003549465), Point2 = (1.0226202, 0, 0.0498683500)
+! of the design frame of the hull (x from the bow, baseline frame).  The grid of this case is
+! that hull trimmed 2.27 deg bow-up and shifted: grid = R_y(2.272 deg) design + (1.4442, 0, 0.0306)
+! (rotation fitted to the propeller hub axis, shift = bow tip at x = 0 and the propeller axis through
+! the hub centre).  In the grid the steering axis therefore passes through (2.4730, 0, -0.0099) with
+! the direction (-0.0998, 0, 0.9950) (raked 5.7 deg, pointing up).
+ Child_body            = 1              !child id (row 7 of the csv) under the current Body
+ Mother_body           = 1              !must equal the Body above (checked)
+ Mass                  = 0.45           ![kg] drive housing + gear case (model scale, estimate)
+ CG                    = 2.49  0.0  -0.06    !grid frame [m] (centre of the housing blocks)
+ Rot_Center            = 2.4730  0.0  -0.0099 !own centre of rotation O = Point1 of the steering axis in the grid frame
+ Motion_DOF            = 0 0 0 1 1 1    !roll pitch yaw IMPOSED (relative to the hull) from GPPH_body1_child1_imposed.dat:
+                                        !  a rotation about the raked steering axis is a combination of the three Euler
+                                        !  angles; the table turns the drive at 45 deg/s (0.125 rev/s) up to +45 deg
+                                        !  (reached at t = 1.0 s) and holds it there; +45 deg = right-hand rotation about
+                                        !  the axis pointing from Point1 to Point2 (upwards): the propeller end of the
+                                        !  drive swings to starboard (SNAME yaw -45 deg).  Written by
+                                        !  python3 tools/make_axis_rotation.py GPPH_body1_child1_imposed.dat 0.125
+                                        !      -0.0998 0 0.9950 2.1 --stop_deg 45
+                                        !  (0 0 0 0 0 0 = rigid with the hull; its fluid force and the propeller wrench
+                                        !  are passed to the hull in either case: an imposed DOF transmits everything)
+ Inertia               = 1.5e-4 4.0e-4 4.0e-4   !about its CG, own axes [kg m2]
+ Prod_Inertia          = 0.0 0.0 0.0
+ Added_Mass            = 0 0 0 0 0 0    !(no free DOF: unused)
+ Motion_Damp           = 0 0 0 0 0 0
+ Probe_point1          = 2.55  0.00 -0.03  !probe point turning with the drive (update 22) -> GPPH_body1_child1_probe1.dat
+!---- PID steering of the drive (update 21): instead of the imposed table above, a controller
+!     turns the drive about its steering axis to hold the HULL's yaw rate at 0 (remove the "!"
+!     to activate; the Motion_DOF of the part is then ignored)
+! PID_use               = 1              !opens a PID controller in this part (1 per grid part)
+! PID_type              = 2              !1 throttle [rev/s], 2 steering [deg] about PID_Axis, 3 direct force
+! PID_Axis              = -0.0998 0 0.9950   !rotation axis, GRID frame at t = 0 (the steering axis, pointing up):
+!                                        !  the output angle is a right-hand rotation about it, through Rot_Center
+! PID_P                 = 2.0            !proportional gain [output unit per unit of the measured variable]
+! PID_I                 = 0.5            !integral gain [output per (unit x s)]
+! PID_D                 = 0.05           !derivative gain [output per (unit / s)] (derivative of the measurement)
+! PID_Target_body       = 1              !the part whose 6-DoF variable is controlled: Body id ...
+! PID_Target_child_body = 0              !  ... Child_body id under it (0 = the Body itself) ...
+! PID_Target_sub_child_body = 0          !  ... Sub_child_body id under that child (0 = none)
+! PID_Target_type       = 2              !1 location (eta: x y z [m], roll pitch yaw [deg]), 2 velocity
+!                                        !  (nu: u v w [m/s], roll_rate pitch_rate yaw_rate = p q r [deg/s])
+! PID_Target_var        = yaw_rate       !the variable: x y z roll pitch yaw | u v w roll_rate pitch_rate yaw_rate
+! PID_Target_value      = 0.0            !target value(s): up to 32, reached in sequence
+! PID_Target_tol        = 0.5            !tolerance on |error| for "target reached" (same unit as the variable)
+! PID_Target_hold_T     = 0.5            !the error must stay within the tolerance this long [s] before the next target
+! PID_Out_init          = 0.0            !initial output (angle [deg] here; a disk throttle uses Prop_RPS instead)
+! PID_Out_limit         = -35.0  35.0    !output limits (min max); the integral stops winding up at a limit
+! PID_Rate_limit        = 45.0           !max |d(output)/dt| per second (0 = none): 45 deg/s here
+! PID_Start_T           = 1.0            !the output is held at its initial value before this time [s]
+ Child_body_End        = -1             !end of child 1 (update 19; optional)
+
+!---- sub-child body 1 of child 1: propeller blades + hub (blocks 21-29) ----------------------
+!     (the FSI keys below, commented out, would make this part FLEXIBLE - update 24; for a
+!      propeller the hub block must then be its own part, see cases/KP505_FSI)
+ Sub_child_body        = 1              !sub-child id (row 8 of the csv) under the current Child_body
+ Mother_body           = 1              !must equal the Body above (checked)
+ Mother_child_body     = 1              !must equal the Child_body above (checked)
+ Mass                  = 0.05           ![kg] propeller + hub (D = 0.089 m, estimate)
+ CG                    = 2.5186  0.0  -0.0989   !hub centre, grid frame [m] (on the shaft axis)
+ Rot_Center            = 2.5186  0.0  -0.0989   !own centre of rotation O = hub centre: the imposed rotation
+                                        !  is about the SHAFT AXIS through this point.  Shaft axis of the
+                                        !  design frame: Point1 = (1, 0, -0.086811873), Point2 = (0, 0, -0.086811873)
+                                        !  (horizontal); in the trimmed grid (see the child above) it is the
+                                        !  line through the hub centre with the direction (-0.99921, 0, 0.03964)
+ Motion_DOF            = 0 0 0 1 1 1    !roll pitch yaw IMPOSED (relative to the stern drive: the shaft turns
+                                        !  with the drive when it steers) from GPPH_body1_child1_sub1_imposed.dat:
+                                        !  the shaft axis is inclined 2.27 deg, so the rotation about it is a
+                                        !  combination of all three Euler angles; continuous rotation, the table
+                                        !  (10 rev/s = 600 rpm, right-handed = clockwise seen from astern,
+                                        !  J = U/(n D) = 1.1, 0.9 deg per row, 2.1 s) was written by
+                                        !  python3 tools/make_axis_rotation.py GPPH_body1_child1_sub1_imposed.dat
+                                        !      10 -0.99921 0 0.03964 2.1
+                                        !  (a FREE-WHEELING propeller instead: Motion_DOF = 0 0 0 2 0 0 with a
+                                        !  horizontal shaft; the torque is then not passed to the drive)
+ Inertia               = 4.5e-5 3.0e-5 3.0e-5   !about its CG, OWN axes [kg m2] (Ixx about the shaft)
+ Prod_Inertia          = 0.0 0.0 0.0
+ Added_Mass            = 0 0 0 0 0 0    !(imposed DOFs: unused)
+ Motion_Damp           = 0 0 0 0 0 0
+ Probe_point1          = 2.5186 0.03 -0.0989 !probe point rotating with the propeller (update 22): r = 0.03 m from the
+                                        !  hub centre -> GPPH_body1_child1_sub1_probe1.dat
+! SW_FSI                = 1              !0 rigid (default) / 1 FLEXIBLE part (update 24, see the FSI note above)
+! Youngs_modulus        = 1.1e11         ![Pa] of the part's material (nickel-aluminium bronze)
+! Poisson_ratio         = 0.33           ![-] 0 <= nu < 0.5
+! Density               = 7600.0         ![kg/m3]: Mass = Density x enclosed volume of the wall surface
+!                                        !  (give Mass instead and Density = Mass / volume is computed)
+! Num_NoFSI_Group       = 1              !number of CLAMPED node groups (block index ranges of wall nodes
+!                                        !  that do not move; also the clamp of the structure); 0 = free part
+! NoFSI_block_num1      = 21             !group 1: grid block ...
+! NoFSI_i_range1        = 1, 57          !  ... i range (one value = that index, two = from .. to)
+! NoFSI_j_range1        = 1              !  ... j range
+! NoFSI_k_range1        = 1, 4           !  ... k range (the blade root inside the hub)
+! Num_FSI_Submat_regions = 1             !number of SUB-MATERIAL regions (0 = uniform material, default)
+! Submat_block_num1     = 21             !region 1: block and node ranges as above
+! Submat_i_range1       = 1, 57
+! Submat_j_range1       = 1
+! Submat_k_range1       = 30, 42
+! Submat_Density1       = 7850.0         !its density, Young's modulus, Poisson ratio (an element belongs to
+! Submat_Youngs_modulus1 = 2.1e11        !  the region when at least 2 of its 4 nodes lie in the range)
+! Submat_Poisson_ratio1 = 0.30
+! FSI_Start_T           = 0.1            !the structure is held rigid before this time [s] (flow development)
+! Damping_ratio         = 0.01           !Rayleigh (stiffness) damping ratio at the first mode (0 = none)
+! FSI_Min_Thickness     = 0.01           !floor of the measured thickness, fraction of the largest unclamped one
+! FSI_Max_Iter          = 12             !coupling sub-iterations per time step (each repeats the fluid step)
+! FSI_Tol               = 1.0e-4         !convergence: ||d_k - d_k-1|| / ||d_k - d_n|| (Fabbri et al. 2023 Eq. 23),
+!                                        !  with the absolute floor FSI_Tol x shell thickness
+! FSI_Relax             = 0.5            !relaxation of the first sub-iteration (then interface quasi-Newton)
+! FSI_Mode              = 1              !1 dynamic (generalized-alpha, rho_inf 0.8), 0 quasi-static equilibrium
+! FSI_Plane_Strain      = 0              !quasi-2-D cases only (24c): 1 / 2 / 3 = span axis x / y / z - cylindrical bending
+!                                        !  (no displacement along the span, rotation about the span axis only)
+! FSI_Test_Motion       = 0.022, 11.25   !verification only: no structural solve - the part follows an imposed
+!                                        !  bending mode, tip amplitude [m] and frequency [Hz], ramped over one period
+!                                        !  (needs FSI_Plane_Strain); tests the moving-grid fluid without feedback;
+!                                        !  3rd value: 0 oscillation (default), 1 ramp to the static deflection and
+!                                        !  hold, 2 PLUCK = a start-up aid of a real FSI run: the shape (4th value:
+!                                        !  0 the static tip-load shape, m the m-th vibration mode in vacuum,
+!                                        !  inextensible) oscillated with the tip amplitude for 2.25 periods, then
+!                                        !  released at that maximum and solved
+! FSI_Monitor_node1     = 21, 20, 1, 42  !wall node (block i j k) whose displacement / velocity / von Mises
+!                                        !  history is written -> Output_data/<case>_body1_child1_sub1_node1.dat
+ Sub_child_body_End    = -1             !end of sub-child 1 (update 19; optional)
+
+!---------------------------------------------------------------------------------------------
+! FORCE MODELS (update 19).  Every group: Force_model = n (id 1..64, unique), Force_type,
+! Mother_body [, Mother_child_body [, Mother_sub_child_body]], the lines of its type,
+! Force_model_End = -1.  The geometry points (Prop_P1, Prop_P2, Force_Point) are GRID
+! coordinates [m] at t = 0 and move with the mother part; the disk velocity is subtracted from
+! the fluid velocity for the inflow.  The disk forces are momentum sources of the fluid; their
+! reaction (sum of -f V and of -(x - O_m) x f V over the disk cells: thrust AND torque) acts on
+! the mother about its Rot_Center and is transferred up the hierarchy like the fluid forces.
+! The forces are evaluated once per step from the corrected field and drive the next step.
+! Output (every Data_Intvl steps): Output_data/<case>_force_model<n>.dat - the wrench on the
+! mother in the MOTHER's body frame (SNAME) about the mother's Rot_Center, the moment about the
+! model's own centre ((P1+P2)/2 or Force_Point), and for the disks n, J, K_T, K_Q, T, Q, the
+! liquid fraction of the disk and the number of disk cells.  No mother: grid frame, moment
+! about the own centre.  Log: a "[ Force model n ]" line every Log_Intvl steps.
+!---------------------------------------------------------------------------------------------
+!---- force model 1: Hough-Ordway actuator disk on the hull ------------------------------------
+ Force_model           = 1              !force model id (1..64, unique)
+ Force_type            = 1              !1 Hough-Ordway disk, 2 BEM disk, 3 point force
+ Mother_body           = 1              !mother Body id (0 = no mother: fixed in space)
+ Mother_child_body     = 0              !mother Child_body id under that Body (0 = the Body itself; optional)
+ Mother_sub_child_body = 0              !mother Sub_child_body id under that Child_body (0 = none; optional)
+ Prop_P1               = 2.50  0.0  -0.099  !centre of the upstream face of the disk, grid frame [m]
+ Prop_P2               = 2.52  0.0  -0.099  !centre of the downstream face [m]: P1->P2 = axis = the direction
+                                        !  in which the water is pushed (thrust on the mother along P2->P1);
+                                        !  |P2 - P1| = disk thickness (use 1-3 cells)
+ Prop_D                = 0.089          !propeller diameter [m]
+ Prop_Hub              = 0.18           !hub ratio r_h / R (no load inside)
+ Prop_RPS              = 10.0           !rotation rate n [rev/s]: + right-handed about P1->P2, - left-handed
+ Prop_KT               = 0.45 -0.35 -0.10   !K_T(J) = c0 + c1 J + c2 J^2 (type 1 only); J = U_a/(n D) from the
+                                        !  liquid-weighted disk-averaged axial inflow relative to the disk
+ Prop_KQ               = 0.062 -0.045 -0.012  !K_Q(J) = c0 + c1 J + c2 J^2 (K_Q itself, not 10 K_Q)
+!---- PID throttle on the disk (update 21): the controller's output replaces Prop_RPS to hold the
+!     hull's surge speed (Prop_RPS above = the initial rps; PID_Out_init is ignored for a disk
+!     throttle).  A disk may carry a throttle AND a steering controller (up to 4 per force model).
+! PID_use               = 1
+! PID_type              = 1              !throttle: output = n [rev/s] about P1->P2
+! PID_P                 = 20.0           ![rev/s per m/s]
+! PID_I                 = 5.0
+! PID_D                 = 0.0
+! PID_Target_body       = 1
+! PID_Target_type       = 2              !velocity
+! PID_Target_var        = u              !surge speed of the hull [m/s]
+! PID_Target_value      = 1.0  1.5       !two targets in sequence
+! PID_Target_tol        = 0.02
+! PID_Target_hold_T     = 1.0
+! PID_Out_limit         = 0.0  25.0      !rps in [0, 25]
+! PID_Rate_limit        = 10.0           ![rev/s per s]
+!---- PID steering of the same disk: the disk axis P1->P2 turns about PID_Axis through
+!     PID_Axis_Center (the rps stays Prop_RPS, or the throttle controller's output)
+! PID_use               = 1
+! PID_type              = 2              !steering: output = angle [deg] of the disk axis about PID_Axis
+! PID_Axis              = 0 0 1          !vertical axis, grid frame (required for a disk steering)
+! PID_Axis_Center       = 2.51 0.0 -0.099   !point on the axis, grid frame (default: the disk centre (P1+P2)/2)
+! PID_P                 = 3.0
+! PID_I                 = 0.2
+! PID_D                 = 0.0
+! PID_Target_body       = 1
+! PID_Target_type       = 1              !location
+! PID_Target_var        = yaw            !hull heading [deg] (angle errors are wrapped to (-180, 180])
+! PID_Target_value      = 0.0  10.0      !hold the course, then turn 10 deg to starboard
+! PID_Target_tol        = 0.5
+! PID_Target_hold_T     = 1.0
+! PID_Out_limit         = -35.0  35.0
+! PID_Rate_limit        = 45.0
+ Force_model_End       = -1             !end of the force model (required)
+
+!---- force model 2: BEM disk carried by the stern drive (child 1) -----------------------------
+ Force_model           = 2
+ Force_type            = 2              !pure blade-element momentum disk (no K_T / K_Q calibration)
+ Mother_body           = 1
+ Mother_child_body     = 1              !hangs on child 1: turns with the drive
+ Prop_P1               = 2.5186  0.0  -0.0989
+ Prop_P2               = 2.5386  0.0  -0.0981
+ Prop_D                = 0.089
+ Prop_Hub              = 0.20
+ Prop_RPS              = 10.0
+ Prop_Blades           = 4              !number of blades Z (type 2)
+ Prop_Sections         = 5              !number of radial stations (2..20) of the lines below (type 2)
+ Prop_rR               = 0.20 0.40 0.60 0.80 1.00   !r/R of the stations (increasing)
+ Prop_cD               = 0.18 0.25 0.28 0.24 0.00   !chord / D
+ Prop_PD               = 0.90 1.00 1.05 1.02 0.98   !pitch / D (geometric pitch angle phi = atan((P/D)/(pi r/R)))
+ Prop_fc               = 0.02 0.025 0.025 0.02 0.0  !camber / chord (zero-lift angle alpha_0 = -2 f/c rad)
+ Prop_CD0              = 0.010 0.008 0.008 0.009 0.012  !section minimum drag coefficient
+ Prop_CLa              = 6.28 6.28 6.28 6.28 6.28   !lift slope dC_L/d(alpha) [1/rad] (optional, default 2 pi;
+                                        !  C_L = C_La (phi - beta + 2 f/c) limited to |C_L| <= 1.2)
+ Prop_CDk              = 0.01 0.01 0.01 0.01 0.01   !drag factor k in C_D = C_D0 + k C_L^2 (optional, default 0.01)
+ Force_model_End       = -1
+
+!---- force model 3: point force on the hull (towing spring) -----------------------------------
+ Force_model           = 3
+ Force_type            = 3              !point force / couple from user formulas
+ Mother_body           = 1
+ Force_Point           = 0.30  0.0  0.05    !application point, grid frame [m] at t = 0 (moves with the mother)
+ Force_Fx              = "-2000*(x - 0.30) - 150*u"   !force components [N] in the MOTHER's body frame
+ Force_Fy              = "-2000*y - 150*v"            !  (SNAME: x fwd, y stbd, z down); formulas in quotes;
+ Force_Fz              = "0"                          !  omitted components are 0
+ Force_Mx              = "-5*p"                       !optional pure couples [N m] in the mother's frame,
+ Force_My              = "0"                          !  added to r x F of the point force
+ Force_Mz              = "0"
+                                        !formula variables: x y z roll pitch yaw (eta of the mother: a body in
+                                        !  the earth frame [m, rad], a child / sub-child relative to its own
+                                        !  mother), u v w p q r (nu of the mother [m/s, rad/s]), t [s]; constants
+                                        !  pi g rho; functions sin cos tan asin acos atan atan2 sqrt exp log abs
+                                        !  min max sign step (step(x) = 1 for x >= 0 else 0); operators + - * / ^; g = |Grvty|.
+                                        !  Mother_body = 0: x y z = Force_Point, the rest 0, and the force (grid
+                                        !  frame) is put into the fluid at the cell containing Force_Point
+!---- direct-force PID on the point force (update 21): the output [N] is ADDED to the formula value
+!     of PID_Component (a point force needs a formula or a controller on at least one component)
+! PID_use               = 1
+! PID_type              = 3              !direct force
+! PID_Component         = Force_Fx       !Force_Fx .. Force_Fz [N] or Force_Mx .. Force_Mz [N m], mother's frame
+! PID_P                 = 500.0          ![N per m/s]
+! PID_I                 = 100.0
+! PID_D                 = 0.0
+! PID_Target_body       = 1
+! PID_Target_type       = 2
+! PID_Target_var        = u              !hold the hull's surge speed with the towing force
+! PID_Target_value      = 1.2
+! PID_Target_tol        = 0.02
+! PID_Target_hold_T     = 0.0
+! PID_Out_init          = 0.0            !initial output [N]
+! PID_Out_limit         = -50.0  50.0
+! PID_Rate_limit        = 0.0            !0 = no rate limit
+! PID_Start_T           = 0.5
+ Force_model_End       = -1
+/end
+
+$Cavitation
+!---------------------------------------------------------------------------------------------
+! Cavitation (update 15, cavitation.F90): a third phase, the VAPOUR, is carried as the volume
+! fraction of the liquid-vapour part of a cell (the water / air VoF alpha of a two-phase case
+! is untouched); the mass transfer of the selected model adds a source to the vapour equation
+! and a volume source to the continuity equation (div u = mdot (1/rho_v - 1/rho_l)).
+! The SOLVER PRESSURE IS THE ABSOLUTE PRESSURE: the level is the Dirichlet p of the .bcs file
+! (or RefPrs when every pressure BC is zero-gradient, SW_Ref_Prs = 1) and p_cel_initial; the
+! cavitation number sigma = (p_level - Prs_Vapor)/(1/2 rho U^2) is printed at start-up.
+! Fixed numerics: sources ramped over 50 steps from Cav_Start_T, implicit condensation, no mass
+! transfer where the air fraction > 0.5, vapour fraction clipped to [0,1] (reported).
+! Output: 'Vapor' after 'VoF' in the .p3d files; vapour volume + max fraction in the monitor.
+!---------------------------------------------------------------------------------------------
+ SW_Cav        = 0          !0 off, 1 on
+ Cav_model     = 1          !1 Schnerr-Sauer, 2 Zwart-Gerber-Belamri, 3 Kunz
+ Vapor_scheme  = 2          !vapour transport: 1 explicit CICSAM (sub-cycled), 2 implicit CICSAM,
+                            !  3 2nd-order ENO (minmod) face values with the time integration of
+                            !  Cnvt_mode (1 explicit, 2 implicit, 3 hybrid by the Courant number)
+ Cav_Start_T   = 0.0        !mass transfer switched on from this time [s] (the flow and the pressure
+                            !  field settle first; 50-step ramp; runtime-changeable)
+ Prs_Vapor     = 2340.0     !vapour pressure [Pa] (water 20 C; 3170 at 25 C)
+ Lou_v         = 0.0173     !vapour density [kg/m3]
+ mu_v          = 9.8e-6     !vapour viscosity [kg/(m s)]
+ SS_Nuclei     = 1.0e13     !Schnerr-Sauer: nuclei number density n0 [1/m3]   (model 1)
+ SS_Radius     = 1.0e-6     !               nucleus radius R0 [m]
+ ZGB_Fvap      = 50.0       !Zwart: evaporation / condensation coefficients   (model 2)
+ ZGB_Fcond     = 0.01
+ ZGB_Rnuc      = 5.0e-4     !       nucleation-site volume fraction
+ ZGB_Rb        = 1.0e-6     !       bubble radius [m]
+ Kunz_Cdest    = 100.0      !Kunz: destruction (evaporation) / production (condensation)
+ Kunz_Cprod    = 100.0      !      constants; t_inf = Char_L / Char_U                 (model 3)
+ Latent_Heat   = 2.2567e6   !latent heat of vaporisation [J/kg] (update 16; used with SW_Energy = 1: the
+                            !  mass transfer cools / heats the liquid, -mdot L / (rho c_p))
+ Pv_of_T       = 0          !0 = constant Prs_Vapor, 1 = vapour pressure from the saturation law p_v(T) of
+                            !  water at the cell temperature (SW_Energy = 1; thermodynamic effect)
+ Cav_compressible = 0       !update 17: 1 = compressible liquid-vapour mixture (Wood / Wallis sound speed: the
+                            !  liquid with Snd_liquid, the vapour as an isothermal ideal gas c_v^2 = p/rho_v):
+                            !  (1/(rho c^2)) dp/dt + div u = S in the pressure equation,
+                            !  the vapour volume responds to the pressure; isothermal, no energy equation needed.
+                            !  The pressure term is implicit (any acoustic CFL is stable); resolve the waves with
+                            !  dt < h / c_mix where it matters (c_mix is a few m/s in the 10-90 % mixture; the
+                            !  monitor prints the max acoustic CFL and the min sound speed)
+ Snd_liquid    = 1480.0     !speed of sound of the liquid [m/s]
+ Cav_thermal   = 0          !update 17: 1 = thermal cavitation (needs SW_Energy = 1; any fluid): p_v(T) and rho_v(T)
+                            !  by Clausius-Clapeyron through (Prs_Vapor, Lou_v, Latent_Heat) at T_init, the
+                            !  thermodynamic delay of the evaporation dT* = 1/2 (rho_v L/(rho_l c_p)) R_B/sqrt(alpha_l t)
+                            !  (B-factor: the bubble of radius R_B is cooler than the liquid by the heat it
+                            !  draws through its thermal layer; evaporation driven by p_v(T - dT*)), implicit
+                            !  latent-heat sink.  Negligible for cold water, needed for hot water and cryogens
+ Cav_thermal_t = 0.0        !bubble-growth time t [s] of the delay (0 = 1 ms; the cavity residence time
+                            !  L_cavity/U, 0.1-10 ms at full-scale speeds); the modelling constant of the delay,
+                            !  runtime-changeable
+ vap_cel_initial = 0.0      !initial vapour fraction of the liquid cells (tests of the compressible mixture)
+/end
+
+$Energy
+!---------------------------------------------------------------------------------------------
+! Heat / energy equation (update 16, energy.F90): the temperature T [K] is carried at the cell
+! centres (one-fluid mixture: rho c_p and k volume-weighted over liquid / air / vapour,
+! k_eff = k + mu_t c_p / Pr_t), written as 'Temperature' in the .p3d files.  Every surface of
+! the .bcs file needs a T line (after the alpha line, which is then required in a two-phase
+! run): 0 zero gradient (adiabatic wall, outlet, symmetry), 1 Dirichlet T [K] (isothermal wall,
+! inlet; on a flag-11 wall the thermal wall function of Kader is used), 3 heat flux q_w [W/m2]
+! into the fluid, 4 convective "4  h [W/(m2 K)]  T_inf [K]".  Buoyancy by the Boussinesq term
+! -beta (T - T_init) g when Beta_l / Beta_a /= 0 (set Prs_form = 2 then).  The heat flow of
+! every Dirichlet / flux / convective surface is written to Output_data/<case>_heat.dat.
+! Restart: a .rsto file without T may be restarted with SW_Energy = 1 (T starts at T_init).
+!---------------------------------------------------------------------------------------------
+ SW_Energy             = 0            !0 off, 1 on
+ T_init                = 293.15       !initial temperature [K] = reference temperature of the Boussinesq term
+ Cp_l                  = 4182.0       !liquid (fluid "w") specific heat [J/(kg K)]
+ k_l                   = 0.6          !liquid thermal conductivity [W/(m K)]
+ Cp_a                  = 1005.0       !air (read when Num_of_Phase = 2)
+ k_a                   = 0.0257
+ Cp_v                  = 1996.0       !vapour (read when SW_Cav = 1)
+ k_v                   = 0.0184
+ Beta_l                = 0.0          !thermal expansion [1/K] of the liquid (0 = no buoyancy coupling: T is a
+ Beta_a                = 0.0          !  passive scalar); air: Beta_a (e.g. 3.4e-3 = 1/T)
+ Pr_t                  = 0.85         !turbulent Prandtl number (optional, default 0.85)
+
+ Max_Itr_Engy          = 50           !temperature equation: SOR sweeps max / min, residual limit (relative to
+ Min_Itr_Engy          = 1            !  the first sweep), relaxation factor
+ Rsd_Lmt_Engy          = 1.0e-6
+ SOR_fct_Engy          = 1.0
+ Cnvt_scheme_Engy      = 2            !1 1st-order upwind, 2 2nd-order upwind, 3 QUICK (implicit mode 2 recommended),
+                                      !  4 2nd-order ENO (minmod; bounded, use it for sharp fronts)
+ Cnvt_mode_Engy        = 3            !convection: 1 explicit (sub-cycled to cfl_switch_Engy), 2 implicit,
+                                      !  3 hybrid per direction by the local cell CFL number
+ Dffs_mode_Engy        = 3            !diffusion : 1 explicit (sub-cycled to vn_switch_Engy), 2 implicit,
+                                      !  3 hybrid per direction by the local Von Neumann number
+ cfl_switch_Engy       = 0.3
+ vn_switch_Engy        = 0.5
+/end
+
+
+$Statistics
+!---------------------------------------------------------------------------------------------
+! On-the-fly turbulence statistics (update 23, statistics.F90).  Raw moments accumulated every
+! Statistics_Sample_Intvl steps inside the window [Statistics_Start_T, Statistics_End_T]; the
+! fluctuation statistics are formed at output (mean = S/n, rms = sqrt(Q/n - mean^2), <x'y'> =
+! C/n - mean_x mean_y) with per-point sample counters that skip the steps at which the point is
+! blanked (hole) - the "Coverage" variable is the sampled fraction of the window, points never
+! sampled are written as 0.  The accumulators are kept in the restart file.
+! Where the statistics are taken:
+!   Statistics_type1  the original grid blocks, node based, written on the t = 0 grid
+!                     (<case>_stat_grid.grd); Statistics_Type1_Frame = 1 turns the vectors of a
+!                     moving block into its part's frame (blade-fixed statistics on a propeller
+!                     block, hull-fixed on the hull), 0 keeps the grid axes
+!   Statistics_type2/3/4  user-defined boxes / cylinders / planes: structured lattices attached to
+!                     a frame (Mother_body = 0: the background, > 0: a part, with Mother_child_body /
+!                     Mother_sub_child_body), sampled by trilinear interpolation in the active cell
+!                     of the moved grid (the probe-point machinery); vectors in the frame's axes
+! What (per lattice / grid, each in its own PLOT3D file + .nam name file with the SI units):
+!   Statistics_first_group  Coverage, mean and rms of u v w TTL_Prs Dym_Prs Shear_Stress [VoF]
+!                     [Vapor] [Temperature] [nu_t] [k_model, omega/eps_model or nu_tilde], the
+!                     Reynolds stresses Rss_uu .. Rss_wu and k_res
+!   Statistics_second_group  (velocity only) Coverage_grad, the 9 mean velocity gradients, the
+!                     9 rms fluctuating gradients, the 3 cross terms, eps_res = nu <(du'_i/dx_j
+!                     + du'_j/dx_i)^2>/2 from the FACE DIFFERENCES of the staggered velocities
+!                     (du/dxi, dv/deta, dw/dzeta over the cell's own faces; the gradient group of
+!                     the grid is accumulated at the cells and averaged to the nodes at output)
+!                     (the resolved dissipation; with a model also eps_model =
+!                     the model's own destruction term, eps_total, k_model, k_total), the
+!                     Kolmogorov scale eta = (nu^3/eps)^(1/4), the Taylor scale lambda_g =
+!                     sqrt(10 nu k/eps), Re_lambda, Delta/eta (grid resolution) and the mean vorticity
+! Files: Statistics_volume_solutions/<case>_stat_grid_g1_NNNNNNNN.p3d (+ _g2_, + _stat_grid.grd),
+!        <case>_stat_box<n>_g1_NNNNNNNN.p3d (+ .grd of the lattice), _cyl<n>_, _plane<n>_; one
+!        .nam per file family, e.g. <case>_stat_box1_g1.nam ("u_mean [m/s]" ...).
+!---------------------------------------------------------------------------------------------
+ SW_statistics           = 0            !1 = on (0 = off: nothing below is used)
+ Statistics_type1        = 1            !0/1 original grid blocks
+ Statistics_type2        = 1            !0/1 the Statistics_box groups below
+ Statistics_type3        = 1            !0/1 the Statistics_cyl groups
+ Statistics_type4        = 1            !0/1 the Statistics_plane groups
+ Statistics_first_group  = 1            !0/1 mean, rms, Reynolds stresses
+ Statistics_second_group = 1            !0/1 gradient statistics, dissipation, scales
+ Statistics_Start_T      = 1.0          !averaging window start [s] (skip the start-up transient)
+ Statistics_End_T        = 0            !window end [s] (0 = End_T)
+ Statistics_Sample_Intvl = 1            !one sample every N steps
+ Statistics_Output_Intvl = 200          !write the running statistics every N steps (0 = end of the run only;
+                                        !  also written at the end; can be changed at run time)
+ Statistics_Type1_Frame  = 1            !1 = part frames of the moving blocks, 0 = grid axes
+!---- box 1: the propeller wake in the hull frame (follows body 1) ---------------------------
+ Statistics_box          = 1            !box id (1..64 over all lattices of a kind)
+ Mother_body             = 1            !0 = follows the background (fixed, or Moving_BGR); > 0 = follows that part
+ Mother_child_body       = 0            !  (optional) child under that body
+ Mother_sub_child_body   = 0            !  (optional) sub-child under that child
+ Statistics_box_Origin   = 2.55 -0.10 -0.20   !one corner [m], grid frame at t = 0
+ Statistics_box_Axis1    = 1 0 0        !direction of the first edge from the corner
+ Statistics_box_Axis2    = 0 1 0        !direction of the second edge (perpendicular to Axis1; the third
+                                        !  edge is Axis1 x Axis2, right-handed - no Axis3 is needed)
+ Statistics_box_Length   = 0.30 0.20 0.20     !edge lengths L1 L2 L3 [m] along the three edges
+ Statistics_box_nPoints  = 31 21 21     !lattice points along the three edges
+ Statistics_box_End      = -1
+!---- cylinder 1: the propeller slipstream (follows the stern drive, child 1) ------------------
+ Statistics_cyl          = 1
+ Mother_body             = 1
+ Mother_child_body       = 1
+ Statistics_cyl_Facecenter = 2.5386 0.0 -0.0981  !centre of the starting circular face [m] (the disk plane)
+ Statistics_cyl_Axis     = 1 0 0        !direction in which the cylinder extends (the shaft axis, downstream)
+ Statistics_cyl_Ref      = 0 0 1        !direction of theta = 0 (perpendicular to the axis; 12 o'clock here)
+ Statistics_cyl_Radius   = 0.01 0.06    !r_in r_out [m] (r_in > 0 = annulus, leaves out the hub)
+ Statistics_cyl_Theta    = 0 360        !angular range [deg], right-handed about the axis from Ref
+ Statistics_cyl_Length   = 0.20         !axial extent [m]
+ Statistics_cyl_nPoints  = 11 37 21     !n_r n_theta n_axial (a 360-deg ring closes: theta = 0 and 360 coincide)
+ Statistics_cyl_Polar_Vel = 1           !1 = u_axial u_rad u_tan (and the Reynolds stresses / gradients in these
+                                        !  axes), 0 = the frame's x y z components
+ Statistics_cyl_End      = -1
+!---- plane 1: the nominal wake plane, earth-fixed ---------------------------------------------
+ Statistics_plane        = 1
+ Mother_body             = 0
+ Statistics_plane_Origin = 2.45 -0.15 -0.25   !corner [m]
+ Statistics_plane_Axis1  = 0 1 0        !in-plane edge directions (perpendicular); normal = Axis1 x Axis2
+ Statistics_plane_Axis2  = 0 0 1
+ Statistics_plane_Length = 0.30 0.30    ![m]
+ Statistics_plane_nPoints = 61 61
+ Statistics_plane_End    = -1
+/end
+
+$Probe_background
+!---------------------------------------------------------------------------------------------
+! Volume-field probe points (update 22, probes.F90).  Probe_point<n> = x y z [m] (grid frame at
+! t = 0).  The points of THIS group follow the background grid: fixed in space, or moving with
+! the background blocks when Moving_BGR = 1.  Points that follow a part are given inside its
+! Body / Child_body / Sub_child_body group of $SixDOF with the same Probe_point<n> lines (see the
+! examples there): they move with the part's 6-DoF motion (a point on the propeller rotates with
+! it).  Every point writes its own time history every Data_Intvl steps:
+!   Output_data/<case>_probe<n>.dat                      (this group)
+!   Output_data/<case>_body1_probe<n>.dat                (Body 1)
+!   Output_data/<case>_body1_child1_probe<n>.dat         (Child_body 1 of Body 1)
+!   Output_data/<case>_body1_child1_sub1_probe<n>.dat    (Sub_child_body 1 of Child_body 1 of Body 1)
+! columns: step, time, x y z (current position), u v w [m/s], TTL_Prs, Dym_Prs = p - p_hyd [Pa],
+! VoF (two-phase), Vapor (cavitation), Temperature [K] (energy), Shear_Stress [Pa], the cell
+! (block i j k) and its overset status (1 active, 0 fringe).  The values are the trilinear
+! interpolation of the node values of the volume files in the cell that holds the point (the
+! active cell preferred); "NoData" is written when the point lies in a hole (inside a solid,
+! behind a moving body), outside the grid or in a cell no rank holds.
+!---------------------------------------------------------------------------------------------
+ Probe_point1          = 2.0   0.0   0.0   !earth-fixed point 1 [m] (grid frame at t = 0)
+ Probe_point2          = 2.9   0.1  -0.1   !point 2 behind the propeller plane
+/end
+
+$Wave
+!---------------------------------------------------------------------------------------------
+! Incident waves (update 18, waves.F90).  Two-phase runs only.  The wave is defined in the
+! earth-fixed frame; the grid frame is shifted by X_shift(t) = -(integral of the ramped mean
+! velocity of the wave patches) so that a body held in a stream sees the encounter frequency
+! automatically.  Boundary condition: .bcs flag 12 on the u, v, w, p AND alpha lines of every
+! far-field surface that should carry the incident wave (inlet, outlet, sides, bottom); the
+! values on the u/v/w lines are the mean (carrier) velocity [m/s], the same on all patches.
+! Velocity = mean + orbital velocity (frozen at the surface value in the air), alpha = fill
+! below the exact elevation, pressure ghost = interior + exact wave-pressure difference.
+! Relaxation zones (waves2Foam style) blend velocity and alpha towards the incident wave over
+! Relax_L(1:6) (x-min x-max y-min y-max z-min z-max; Relax_In_L / Relax_Out_L / Relax_Side_L are
+! aliases of the x-min / x-max / both y faces) from the faces of the bounding box
+! of the blocks that carry flag-12 patches: w = (exp(chi^3.5) - 1)/(e - 1), chi = 1 at the boundary
+! (velocity blended in the water only, alpha everywhere in the zone).
+! Output: Output_data/<case>_components.wav (components used), Output_data/<case>_wave.dat
+! (probe elevations from the alpha column integral, and the exact incident elevation).
+! The zones are attached to the grid faces (original grid coordinates): with Moving_BGR = 1 they move
+! with the background; the probes are earth-fixed positions.
+! Runtime-changeable: Wave_Ramp_T, Relax_In_L, Relax_Out_L, Relax_Side_L.
+!---------------------------------------------------------------------------------------------
+ SW_Wave               = 0            !0 off, 1 regular wave, 2 irregular sea (spectrum or Wave_File)
+ Wave_Amp              = 0.0          !regular: amplitude [m] (Wave_Height = 2 Wave_Amp may be given instead)
+ Wave_Period           = 0.0          !regular: period [s] (the length follows from the dispersion relation)
+ Wave_Phase            = 0.0          !regular: phase at X = 0, t = 0 [deg]
+ Wave_Heading          = 0.0          !propagation direction measured from +x [deg] (both modes)
+ Water_Depth           = 0.0          !depth below FreeSurf_Z [m]; 0 = deep water (both modes)
+ Wave_Order            = 1            !regular: 1 Airy (linear), 2 Stokes 2nd order
+ Spectrum              = 2            !irregular: 1 Bretschneider / ITTC two-parameter, 2 JONSWAP, 3 Pierson-Moskowitz
+ Hs                    = 0.0          !irregular: significant wave height [m]
+ Tp                    = 0.0          !irregular: peak period [s] (PM: computed from Hs)
+ Gamma_JONSWAP         = 3.3          !JONSWAP peak enhancement
+ N_Wave_Comp           = 100          !frequency components, equal d(omega) over 0.5 .. 3.5 omega_p
+ N_Wave_Dir            = 1            !1 long-crested, > 1 cos^2 spreading over +-90 deg (N_Wave_Comp x N_Wave_Dir components)
+ Wave_Seed             = 1            !seed of the random phases (reproducible)
+ Wave_File             = ""           !component list instead of the spectrum: "amp[m] omega[rad/s] heading[deg] phase[deg]" per line
+ Wave_Ramp_T           = 0.0          !half-cosine amplitude ramp [s] from the start (0 = none)
+ Wave_Init             = 0            !1: alpha and velocity of the whole field from the exact wave at t = 0 (ramp off)
+ Relax_L               = 0 0 0 0 0 0  !relaxation zone lengths [m] from the x-min x-max y-min y-max z-min z-max faces of
+                                      !  the wave blocks (0 = none); update 20 - with a yawing background put zones on all
+                                      !  four lateral faces
+!Relax_In_L            = 0.0          !alias of Relax_L(1) (x-min face) - the old keys of update 18 still work; a key
+!Relax_Out_L           = 0.0          !alias of Relax_L(2) (x-max face)   given later in the group overrides the earlier
+!Relax_Side_L          = 0.0          !alias of Relax_L(3) and (4) (both y faces)
+ Wave_Probe_N          = 0            !wave probes (up to 8): elevation history at (Wave_Probe_X, Wave_Probe_Y) [m]
+ Wave_Probe_X          = 0.0
+ Wave_Probe_Y          = 0.0
+/end

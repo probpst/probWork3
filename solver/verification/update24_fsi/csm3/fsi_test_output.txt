@@ -1,0 +1,17 @@
+ cantilever 20 x 2, Newton its 4 (conv 1), band  4.100E+01
+ tip deflection   0.019761 m   beam theory P L^3 / 3 E I =   0.020000   ratio   0.988
+ max von Mises at the root  5.4015E+07 Pa   beam: 6 P L / (W t^2) =  6.0000E+07
+ first frequency [Hz]     8.2320   Euler-Bernoulli 0.5596 sqrt(EI/(rho A L^4)) =     8.1800
+ CSM3 rod, plane strain: f1 [Hz]     1.0731   beam (E/(1-nu^2))     1.0767
+ CSM3 (40 x 2 shell, plane strain, rho_inf 0.8), dt =  0.0050, steps 2000, mean Newton its/step   2.85
+   dy: mean   -63.471 mm, amplitude    65.112 mm
+   dx: mean   -14.282 mm, amplitude    14.282 mm
+   frequency    1.0959 Hz
+   Turek-Hron reference: dy -63.607 +- 65.160 mm, dx -14.305 +- 14.305 mm, f = 1.0995 Hz
+   final kinetic / strain energy   2.4016E-04  8.6231E-05
+ CSM3 (40 x 2 shell, plane strain, rho_inf 0.8), dt =  0.0025, steps 4000, mean Newton its/step   2.45
+   dy: mean   -64.061 mm, amplitude    64.931 mm
+   dx: mean   -14.452 mm, amplitude    14.453 mm
+   frequency    1.0959 Hz
+   Turek-Hron reference: dy -63.607 +- 65.160 mm, dx -14.305 +- 14.305 mm, f = 1.0995 Hz
+   final kinetic / strain energy   2.0024E-04  1.2189E-04

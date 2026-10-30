@@ -1,0 +1,730 @@
+       8                ! number of boundary surfaces
+      28                !*** bc-4   = type #28 Top Slip
+       3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #7= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      45   45           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   62           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #2= type #92
+      -3                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      62   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       2                ! donor mesh
+       3                ! coordinate direction normal to surface
+       1   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #4= type #92
+      -3                ! coordinate direction normal to surface
+      32   97           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      62   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+      -2                ! coordinate direction normal to surface
+     107  172           ! donor mesh start, end in i-direction
+      78   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      92                !*** patched MB #3= type #92
+      -3                ! coordinate direction normal to surface
+      97  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      62   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       3                ! donor mesh
+       3                ! coordinate direction normal to surface
+       1   36           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #8= type #92
+      -1                ! coordinate direction normal to surface
+     132  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   62           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! number of boundary surfaces
+      92                !*** patched MB #1= type #92
+       3                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       1                ! donor mesh
+      -3                ! coordinate direction normal to surface
+       1   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      62   62           ! donor mesh start, end in k-direction
+      92                !*** patched MB #7= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      45   45           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      62  103           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #5= type #92
+      -3                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      42   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+       3                ! coordinate direction normal to surface
+       1   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #4= type #92
+      -1                ! coordinate direction normal to surface
+      32   32           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+      -2                ! coordinate direction normal to surface
+     107   66           ! donor mesh start, end in i-direction
+      78   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! number of boundary surfaces
+      92                !*** patched MB #1= type #92
+       3                ! coordinate direction normal to surface
+       1   36           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       1                ! donor mesh
+      -3                ! coordinate direction normal to surface
+      97  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      62   62           ! donor mesh start, end in k-direction
+      92                !*** patched MB #4= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+      -2                ! coordinate direction normal to surface
+     172  213           ! donor mesh start, end in i-direction
+      78   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+       1   36           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #5= type #92
+      -3                ! coordinate direction normal to surface
+       1   36           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      42   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+       3                ! coordinate direction normal to surface
+      97  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #8= type #92
+      -1                ! coordinate direction normal to surface
+      36   36           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      62  103           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1   36           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1   42           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                ! number of boundary surfaces
+      24                !*** bc-7   = type #24
+       3                ! coordinate direction normal to surface
+       1  213           ! start, end in i-direction
+       1   78           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #4= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+      -1                ! coordinate direction normal to surface
+     213  213           ! donor mesh start, end in i-direction
+       1   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      20                !*** bc-6   = type #20
+       2                ! coordinate direction normal to surface
+       1  213           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      61                !*** bc-8   = type #61
+      -3                ! coordinate direction normal to surface
+       1  213           ! start, end in i-direction
+       1   78           ! start, end in j-direction
+      56   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #4= type #92
+      -1                ! coordinate direction normal to surface
+     213  213           ! start, end in i-direction
+       1   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      92                !*** patched MB #5= type #92
+      -2                ! coordinate direction normal to surface
+       1   66           ! start, end in i-direction
+      78   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+       3                ! coordinate direction normal to surface
+      97   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #2= type #92
+      -2                ! coordinate direction normal to surface
+      66  107           ! start, end in i-direction
+      78   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       2                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      32   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      42    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #1= type #92
+      -2                ! coordinate direction normal to surface
+     107  172           ! start, end in i-direction
+      78   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       1                ! donor mesh
+      -3                ! coordinate direction normal to surface
+      32   97           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      62   62           ! donor mesh start, end in k-direction
+      92                !*** patched MB #3= type #92
+      -2                ! coordinate direction normal to surface
+     172  213           ! start, end in i-direction
+      78   78           ! start, end in j-direction
+       1   56           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       3                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   42           ! donor mesh start, end in k-direction
+       8                ! number of boundary surfaces
+      92                !*** patched MB #2= type #92
+       3                ! coordinate direction normal to surface
+       1   32           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       2                ! donor mesh
+      -3                ! coordinate direction normal to surface
+       1   32           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      42   42           ! donor mesh start, end in k-direction
+      92                !*** patched MB #4= type #92
+       3                ! coordinate direction normal to surface
+      32   97           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       4                ! donor mesh
+      -2                ! coordinate direction normal to surface
+      66    1           ! donor mesh start, end in i-direction
+      78   78           ! donor mesh start, end in j-direction
+       1   56           ! donor mesh start, end in k-direction
+      92                !*** patched MB #3= type #92
+       3                ! coordinate direction normal to surface
+      97  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       3                ! donor mesh
+      -3                ! coordinate direction normal to surface
+       1   36           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      42   42           ! donor mesh start, end in k-direction
+      92                !*** patched MB #7= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   17           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      45   45           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+     103  119           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   17           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #6= type #92
+      -3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      17   17           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! donor mesh
+       3                ! coordinate direction normal to surface
+       1  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1    1           ! donor mesh start, end in k-direction
+      92                !*** patched MB #8= type #92
+      -1                ! coordinate direction normal to surface
+     132  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   17           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+     103  119           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1   17           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! number of boundary surfaces
+      92                !*** patched MB #5= type #92
+       3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+      -3                ! coordinate direction normal to surface
+       1  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+      17   17           ! donor mesh start, end in k-direction
+      92                !*** patched MB #7= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      45   45           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+     119  143           ! donor mesh start, end in k-direction
+      92                !*** patched MB #9= type #92
+       2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                ! donor mesh
+      -2                ! coordinate direction normal to surface
+       1  132           ! donor mesh start, end in i-direction
+      11   11           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      28                !*** bc-5   = type #28 Bottom Slip
+      -3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      25   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #8= type #92
+      -1                ! coordinate direction normal to surface
+     132  132           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+     119  143           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      11                ! number of boundary surfaces
+      28                !*** bc-4   = type #28 Top Slip
+       3                ! coordinate direction normal to surface
+       1   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                !*** bc-2   = type #9 Inlet
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #10= type #92
+       2                ! coordinate direction normal to surface
+       1   35           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      10                ! donor mesh
+      -2                ! coordinate direction normal to surface
+       1   35           ! donor mesh start, end in i-direction
+      14   14           ! donor mesh start, end in j-direction
+       1  143           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+      35   45           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1  119           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #9= type #92
+       2                ! coordinate direction normal to surface
+      35   45           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+     119  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   11           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      28                !*** bc-5   = type #28 Bottom Slip
+      -3                ! coordinate direction normal to surface
+       1   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     143  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #1= type #92
+      -1                ! coordinate direction normal to surface
+      45   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       1                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   62           ! donor mesh start, end in k-direction
+      92                !*** patched MB #2= type #92
+      -1                ! coordinate direction normal to surface
+      45   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      62  103           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       2                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   42           ! donor mesh start, end in k-direction
+      92                !*** patched MB #5= type #92
+      -1                ! coordinate direction normal to surface
+      45   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     103  119           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   17           ! donor mesh start, end in k-direction
+      92                !*** patched MB #6= type #92
+      -1                ! coordinate direction normal to surface
+      45   45           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     119  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! donor mesh
+       1                ! coordinate direction normal to surface
+       1    1           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1   45           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      11                ! number of boundary surfaces
+      28                !*** bc-4   = type #28 Top Slip
+       3                ! coordinate direction normal to surface
+       1   73           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #1= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1   62           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       1                ! donor mesh
+      -1                ! coordinate direction normal to surface
+     132  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   62           ! donor mesh start, end in k-direction
+      92                !*** patched MB #3= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+      62  103           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       3                ! donor mesh
+      -1                ! coordinate direction normal to surface
+      36   36           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   42           ! donor mesh start, end in k-direction
+      92                !*** patched MB #5= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     103  119           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       5                ! donor mesh
+      -1                ! coordinate direction normal to surface
+     132  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   17           ! donor mesh start, end in k-direction
+      92                !*** patched MB #6= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     119  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! donor mesh
+      -1                ! coordinate direction normal to surface
+     132  132           ! donor mesh start, end in i-direction
+       1   56           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+       2                ! coordinate direction normal to surface
+       1   11           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1  119           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #9= type #92
+       2                ! coordinate direction normal to surface
+       1   11           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+     119  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                ! donor mesh
+      -1                ! coordinate direction normal to surface
+     132  132           ! donor mesh start, end in i-direction
+      11    1           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      92                !*** patched MB #10= type #92
+       2                ! coordinate direction normal to surface
+      11   73           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      10                ! donor mesh
+      -2                ! coordinate direction normal to surface
+     166  228           ! donor mesh start, end in i-direction
+      14   14           ! donor mesh start, end in j-direction
+       1  143           ! donor mesh start, end in k-direction
+      28                !*** bc-5   = type #28 Bottom Slip
+      -3                ! coordinate direction normal to surface
+       1   73           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+     143  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      12                !*** bc-3   = type #12 Outlet
+      -1                ! coordinate direction normal to surface
+      73   73           ! start, end in i-direction
+       1   56           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      61                !*** bc-8   = type #61
+      -2                ! coordinate direction normal to surface
+       1   73           ! start, end in i-direction
+      56   56           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! number of boundary surfaces
+      24                !*** bc-7   = type #24
+       3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   11           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #7= type #92
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   11           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+       2                ! coordinate direction normal to surface
+      35   45           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+     119  143           ! donor mesh start, end in k-direction
+      92                !*** patched MB #10= type #92
+       2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      10                ! donor mesh
+      -2                ! coordinate direction normal to surface
+      35  166           ! donor mesh start, end in i-direction
+      14   14           ! donor mesh start, end in j-direction
+     119  143           ! donor mesh start, end in k-direction
+      28                !*** bc-5   = type #28 Bottom Slip
+      -3                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+       1   11           ! start, end in j-direction
+      25   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #8= type #92
+      -1                ! coordinate direction normal to surface
+     132  132           ! start, end in i-direction
+       1   11           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       2                ! coordinate direction normal to surface
+      11    1           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+     119  143           ! donor mesh start, end in k-direction
+      92                !*** patched MB #6= type #92
+      -2                ! coordinate direction normal to surface
+       1  132           ! start, end in i-direction
+      11   11           ! start, end in j-direction
+       1   25           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       6                ! donor mesh
+       2                ! coordinate direction normal to surface
+       1  132           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+       9                ! number of boundary surfaces
+      28                !*** bc-4   = type #28 Top Slip
+       3                ! coordinate direction normal to surface
+       1  228           ! start, end in i-direction
+       1   14           ! start, end in j-direction
+       1    1           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                !*** bc-2   = type #9 Inlet
+       1                ! coordinate direction normal to surface
+       1    1           ! start, end in i-direction
+       1   14           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      28                !*** bc-9   = type #28 Side Slip
+       2                ! coordinate direction normal to surface
+       1  228           ! start, end in i-direction
+       1    1           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      28                !*** bc-5   = type #28 Bottom Slip
+      -3                ! coordinate direction normal to surface
+       1  228           ! start, end in i-direction
+       1   14           ! start, end in j-direction
+     143  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      12                !*** bc-3   = type #12 Outlet
+      -1                ! coordinate direction normal to surface
+     228  228           ! start, end in i-direction
+       1   14           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #7= type #92
+      -2                ! coordinate direction normal to surface
+       1   35           ! start, end in i-direction
+      14   14           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       7                ! donor mesh
+       2                ! coordinate direction normal to surface
+       1   35           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+       1  143           ! donor mesh start, end in k-direction
+      24                !*** bc-7   = type #24
+      -2                ! coordinate direction normal to surface
+      35  166           ! start, end in i-direction
+      14   14           ! start, end in j-direction
+       1  119           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+      92                !*** patched MB #9= type #92
+      -2                ! coordinate direction normal to surface
+      35  166           ! start, end in i-direction
+      14   14           ! start, end in j-direction
+     119  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       9                ! donor mesh
+       2                ! coordinate direction normal to surface
+       1  132           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+       1   25           ! donor mesh start, end in k-direction
+      92                !*** patched MB #8= type #92
+      -2                ! coordinate direction normal to surface
+     166  228           ! start, end in i-direction
+      14   14           ! start, end in j-direction
+       1  143           ! start, end in k-direction
+       0                ! flag for order of first derivative bc
+       8                ! donor mesh
+       2                ! coordinate direction normal to surface
+      11   73           ! donor mesh start, end in i-direction
+       1    1           ! donor mesh start, end in j-direction
+       1  143           ! donor mesh start, end in k-direction

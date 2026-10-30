@@ -1,0 +1,98 @@
+frame,file,time_s,phase_fraction,phase,LV_target_mL,RV_target_mL,left_domain_volume_mL,right_domain_volume_mL,max_wall_displacement_from_reference_mm,max_wall_step_from_previous_frame_mm
+0,heart_cycle_000.stl,0.0,0.0,isovolumic contraction,133.0,140.0,416.98,386.8,2.702,0.0
+1,heart_cycle_001.stl,0.009796,0.011429,isovolumic contraction,133.0,140.0,417.25,387.02,2.659,0.048
+2,heart_cycle_002.stl,0.019592,0.022857,isovolumic contraction,133.0,140.0,417.97,387.62,2.543,0.127
+3,heart_cycle_003.stl,0.029388,0.034286,isovolumic contraction,133.0,140.0,419.04,388.52,2.373,0.184
+4,heart_cycle_004.stl,0.039184,0.045714,isovolumic contraction,133.0,140.0,420.36,389.61,2.168,0.219
+5,heart_cycle_005.stl,0.046531,0.054286,ventricular ejection,132.81,139.82,421.28,390.34,2.003,0.175
+6,heart_cycle_006.stl,0.053878,0.062857,ventricular ejection,131.4,138.52,421.15,390.06,1.836,0.269
+7,heart_cycle_007.stl,0.062449,0.072857,ventricular ejection,128.46,135.79,420.46,388.69,1.649,0.561
+8,heart_cycle_008.stl,0.072245,0.084286,ventricular ejection,124.12,131.74,419.45,386.32,1.686,0.826
+9,heart_cycle_009.stl,0.082041,0.095714,ventricular ejection,119.57,127.48,418.67,383.87,2.549,0.862
+10,heart_cycle_010.stl,0.091837,0.107143,ventricular ejection,115.31,123.44,418.16,381.72,3.358,0.809
+11,heart_cycle_011.stl,0.101633,0.118571,ventricular ejection,110.43,118.74,416.61,378.99,4.287,0.929
+12,heart_cycle_012.stl,0.111429,0.13,ventricular ejection,105.16,113.64,414.22,375.84,5.295,1.009
+13,heart_cycle_013.stl,0.121224,0.141429,ventricular ejection,99.84,108.49,411.84,372.53,6.311,1.017
+14,heart_cycle_014.stl,0.13102,0.152857,ventricular ejection,94.83,103.68,409.67,369.49,7.27,0.959
+15,heart_cycle_015.stl,0.140816,0.164286,ventricular ejection,90.4,99.5,407.87,367.07,8.116,0.846
+16,heart_cycle_016.stl,0.150612,0.175714,ventricular ejection,86.17,95.53,405.91,364.8,8.925,0.81
+17,heart_cycle_017.stl,0.160408,0.187143,ventricular ejection,82.05,91.67,403.58,362.55,9.717,0.792
+18,heart_cycle_018.stl,0.170204,0.198571,ventricular ejection,78.09,87.98,400.83,360.37,10.481,0.765
+19,heart_cycle_019.stl,0.18,0.21,ventricular ejection,74.35,84.52,397.79,358.28,11.206,0.729
+20,heart_cycle_020.stl,0.189796,0.221429,ventricular ejection,70.89,81.36,394.81,356.29,11.879,0.68
+21,heart_cycle_021.stl,0.199592,0.232857,ventricular ejection,67.76,78.55,391.99,354.52,12.489,0.621
+22,heart_cycle_022.stl,0.209388,0.244286,ventricular ejection,64.99,76.13,389.39,353.07,13.029,0.554
+23,heart_cycle_023.stl,0.219184,0.255714,ventricular ejection,62.35,73.93,386.76,351.75,13.547,0.534
+24,heart_cycle_024.stl,0.22898,0.267143,ventricular ejection,59.83,71.91,384.14,350.52,14.042,0.514
+25,heart_cycle_025.stl,0.238776,0.278571,ventricular ejection,57.52,70.06,381.64,349.4,14.496,0.481
+26,heart_cycle_026.stl,0.241224,0.281429,ventricular ejection,56.99,69.63,381.05,349.14,14.601,0.114
+27,heart_cycle_027.stl,0.246122,0.287143,ventricular ejection,55.99,68.8,379.96,348.67,14.799,0.214
+28,heart_cycle_028.stl,0.255918,0.298571,ventricular ejection,54.27,67.3,378.14,347.97,15.139,0.373
+29,heart_cycle_029.stl,0.265714,0.31,ventricular ejection,53.0,66.0,376.77,347.52,15.392,0.307
+30,heart_cycle_030.stl,0.27551,0.321429,ventricular ejection,52.0,64.76,375.42,347.1,15.594,0.297
+31,heart_cycle_031.stl,0.285306,0.332857,ventricular ejection,51.1,63.56,373.95,346.57,15.78,0.298
+32,heart_cycle_032.stl,0.286531,0.334286,ventricular ejection,51.0,63.42,373.77,346.5,15.801,0.072
+33,heart_cycle_033.stl,0.291429,0.34,ventricular ejection,50.63,62.91,373.05,346.22,15.877,0.134
+34,heart_cycle_034.stl,0.301224,0.351429,ventricular ejection,50.13,62.19,371.76,345.78,15.986,0.208
+35,heart_cycle_035.stl,0.303673,0.354286,ventricular ejection,50.06,62.08,371.48,345.71,16.002,0.059
+36,heart_cycle_036.stl,0.313469,0.365714,isovolumic relaxation,50.0,62.01,370.59,345.56,16.022,0.092
+37,heart_cycle_037.stl,0.320816,0.374286,isovolumic relaxation,50.0,62.04,369.94,345.34,16.028,0.063
+38,heart_cycle_038.stl,0.323265,0.377143,isovolumic relaxation,50.0,62.06,369.75,345.26,16.029,0.065
+39,heart_cycle_039.stl,0.333061,0.388571,isovolumic relaxation,50.0,62.16,369.04,344.97,16.034,0.084
+40,heart_cycle_040.stl,0.33551,0.391429,isovolumic relaxation,50.0,62.2,368.85,344.91,16.036,0.062
+41,heart_cycle_041.stl,0.339184,0.395714,isovolumic relaxation,50.0,62.25,368.57,344.83,16.037,0.058
+42,heart_cycle_042.stl,0.346531,0.404286,isovolumic relaxation,50.0,62.39,367.99,344.7,16.04,0.079
+43,heart_cycle_043.stl,0.356327,0.415714,isovolumic relaxation,50.0,62.63,367.18,344.55,16.045,0.083
+44,heart_cycle_044.stl,0.362449,0.422857,isovolumic relaxation,50.14,62.8,366.81,344.46,16.02,0.07
+45,heart_cycle_045.stl,0.367347,0.428571,isovolumic relaxation,51.17,62.96,367.54,344.37,15.822,0.211
+46,heart_cycle_046.stl,0.372245,0.434286,rapid ventricular filling,53.04,63.43,369.13,344.58,15.459,0.381
+47,heart_cycle_047.stl,0.377143,0.44,rapid ventricular filling,55.57,64.86,371.17,345.81,14.969,0.511
+48,heart_cycle_048.stl,0.383265,0.447143,rapid ventricular filling,59.36,67.75,374.09,348.24,14.235,0.757
+49,heart_cycle_049.stl,0.393061,0.458571,rapid ventricular filling,66.0,73.98,378.75,352.87,12.949,1.325
+50,heart_cycle_050.stl,0.401633,0.468571,rapid ventricular filling,71.34,79.97,381.96,356.78,11.915,1.222
+51,heart_cycle_051.stl,0.410204,0.478571,rapid ventricular filling,76.13,85.34,384.51,359.69,10.986,1.055
+52,heart_cycle_052.stl,0.42,0.49,rapid ventricular filling,82.15,90.75,388.16,362.12,9.82,1.166
+53,heart_cycle_053.stl,0.429796,0.501429,rapid ventricular filling,88.24,96.56,392.43,365.24,8.642,1.178
+54,heart_cycle_054.stl,0.439592,0.512857,rapid ventricular filling,93.81,102.23,396.45,368.89,7.561,1.08
+55,heart_cycle_055.stl,0.448163,0.522857,rapid ventricular filling,97.84,106.67,399.11,371.77,6.783,0.779
+56,heart_cycle_056.stl,0.456735,0.532857,rapid ventricular filling,100.72,110.21,400.68,373.78,6.226,0.608
+57,heart_cycle_057.stl,0.466531,0.544286,rapid ventricular filling,103.38,112.83,401.97,374.76,5.711,0.515
+58,heart_cycle_058.stl,0.476327,0.555714,rapid ventricular filling,105.74,114.84,403.12,375.29,5.256,0.455
+59,heart_cycle_059.stl,0.486122,0.567143,rapid ventricular filling,107.79,116.56,404.19,375.77,4.86,0.396
+60,heart_cycle_060.stl,0.495918,0.578571,rapid ventricular filling,109.53,118.05,405.23,376.3,4.523,0.337
+61,heart_cycle_061.stl,0.505714,0.59,diastasis,110.98,119.33,406.19,376.99,4.244,0.279
+62,heart_cycle_062.stl,0.51551,0.601429,diastasis,112.13,120.44,406.89,377.74,4.022,0.222
+63,heart_cycle_063.stl,0.525306,0.612857,diastasis,113.12,121.43,407.46,378.39,3.832,0.19
+64,heart_cycle_064.stl,0.535102,0.624286,diastasis,114.02,122.33,407.99,378.98,3.658,0.174
+65,heart_cycle_065.stl,0.544898,0.635714,diastasis,114.85,123.16,408.46,379.53,3.5,0.159
+66,heart_cycle_066.stl,0.554694,0.647143,diastasis,115.6,123.94,408.89,380.06,3.355,0.145
+67,heart_cycle_067.stl,0.56449,0.658571,diastasis,116.28,124.65,409.29,380.56,3.223,0.132
+68,heart_cycle_068.stl,0.574286,0.67,diastasis,116.91,125.32,409.67,381.04,3.103,0.12
+69,heart_cycle_069.stl,0.584082,0.681429,diastasis,117.47,125.93,410.01,381.51,2.995,0.108
+70,heart_cycle_070.stl,0.593878,0.692857,diastasis,117.98,126.49,410.35,381.96,2.897,0.098
+71,heart_cycle_071.stl,0.603673,0.704286,diastasis,118.44,127.01,410.68,382.41,2.809,0.088
+72,heart_cycle_072.stl,0.613469,0.715714,diastasis,118.85,127.48,411.14,382.99,2.73,0.08
+73,heart_cycle_073.stl,0.623265,0.727143,diastasis,119.22,127.9,411.73,383.69,2.659,0.075
+74,heart_cycle_074.stl,0.633061,0.738571,diastasis,119.53,128.28,412.38,384.47,2.6,0.101
+75,heart_cycle_075.stl,0.642857,0.75,diastasis,119.79,128.59,413.06,385.28,2.552,0.116
+76,heart_cycle_076.stl,0.652653,0.761429,diastasis,120.0,128.86,413.75,386.07,2.51,0.122
+77,heart_cycle_077.stl,0.662449,0.772857,diastasis,120.2,129.1,414.42,386.83,2.473,0.12
+78,heart_cycle_078.stl,0.672245,0.784286,diastasis,120.39,129.33,415.03,387.52,2.437,0.109
+79,heart_cycle_079.stl,0.682041,0.795714,diastasis,120.58,129.55,415.55,388.12,2.401,0.09
+80,heart_cycle_080.stl,0.691837,0.807143,diastasis,120.79,129.78,415.97,388.61,2.36,0.063
+81,heart_cycle_081.stl,0.701633,0.818571,diastasis,121.04,130.04,416.25,388.94,2.313,0.047
+82,heart_cycle_082.stl,0.711429,0.83,diastasis,121.33,130.33,416.35,389.09,2.257,0.056
+83,heart_cycle_083.stl,0.721224,0.841429,diastasis,121.69,130.69,416.28,389.06,2.189,0.07
+84,heart_cycle_084.stl,0.73102,0.852857,atrial contraction,122.13,131.12,416.1,388.93,2.104,0.109
+85,heart_cycle_085.stl,0.740816,0.864286,atrial contraction,122.93,131.77,416.13,388.85,1.949,0.155
+86,heart_cycle_086.stl,0.750612,0.875714,atrial contraction,124.08,132.62,416.39,388.85,1.726,0.223
+87,heart_cycle_087.stl,0.760408,0.887143,atrial contraction,125.44,133.59,416.8,388.91,1.462,0.264
+88,heart_cycle_088.stl,0.770204,0.898571,atrial contraction,126.87,134.61,417.29,388.99,1.227,0.277
+89,heart_cycle_089.stl,0.78,0.91,atrial contraction,128.23,135.6,417.53,388.76,1.452,0.263
+90,heart_cycle_090.stl,0.789796,0.921429,atrial contraction,129.37,136.47,417.21,387.91,1.79,0.337
+91,heart_cycle_091.stl,0.799592,0.932857,atrial contraction,130.17,137.16,416.5,386.74,2.164,0.374
+92,heart_cycle_092.stl,0.809388,0.944286,atrial contraction,130.86,137.81,415.89,385.8,2.492,0.328
+93,heart_cycle_093.stl,0.819184,0.955714,atrial contraction,131.53,138.48,415.78,385.5,2.685,0.192
+94,heart_cycle_094.stl,0.82898,0.967143,atrial contraction,132.12,139.08,416.23,385.97,2.702,0.115
+95,heart_cycle_095.stl,0.838776,0.978571,atrial contraction,132.6,139.58,416.64,386.41,2.702,0.092
+96,heart_cycle_096.stl,0.848571,0.99,atrial contraction,132.91,139.9,416.9,386.71,2.703,0.059

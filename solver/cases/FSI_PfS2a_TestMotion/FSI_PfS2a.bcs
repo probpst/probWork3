@@ -1,0 +1,114 @@
+! probCFD boundary conditions for case 'FSI_PfS2a' (grid FSI_PfS2a.grd)
+! FSI-PfS-2a (Kalmbach & Breuer 2013): cylinder D = 22 mm at the origin, flexible plate behind it,
+! water channel x -0.077 .. 0.261, y -0.120 .. 0.120 m (slip walls), quasi-2-D span z -0.0002 .. 0.0002 (2 cells).
+! block 1 = ONE elliptic O-grid around cylinder + plate: j = 1 = no-slip wall, j-max = overset boundary (not listed),
+! i = 1 / i = ni coincide (periodic block-to-block face, detected); block 2 = refinement box (overset),
+! block 3 = channel background.  k-min / k-max of every block = the span walls (slip).
+! Record layout per face: direction (|d| = 1 i, 2 j, 3 k; + min, - max), i-, j-, k-ranges (NODE indices),
+!   then one 'flag value' line per variable u, v, w, p: 1 Dirichlet, 0 zero gradient.
+       3                ! number of grid blocks
+! ==================== block 1: cylinder + plate O-grid, 201 x 21 x 3 nodes
+       3                ! number of boundary surfaces of block 1
+  ! --- j-min: body surface, no-slip wall (flexible plate, SW_FSI; the cylinder part clamped)
+       2                ! face direction (j-min)
+       1  201           ! i-range (nodes)
+       1    1           ! j-range (nodes)
+       1    3           ! k-range (nodes)
+       1   0.000       ! u: Dirichlet 0 (no-slip wall)
+       1   0.000       ! v: Dirichlet 0
+       1   0.000       ! w: Dirichlet 0
+       0   0.0         ! p: zero gradient
+  ! --- k-min: span wall
+       3                ! face direction (k-min)
+       1  201           ! i-range (nodes)
+       1   21           ! j-range (nodes)
+       1    1           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient
+  ! --- k-max: span wall
+      -3                ! face direction (k-max)
+       1  201           ! i-range (nodes)
+       1   21           ! j-range (nodes)
+       3    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient
+! ==================== block 2: refinement box 1.5 mm, 107 x 61 x 3 nodes (i/j faces overset)
+       2                ! number of boundary surfaces of block 2
+  ! --- k-min: span wall
+       3                ! face direction (k-min)
+       1  107           ! i-range (nodes)
+       1   61           ! j-range (nodes)
+       1    1           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient
+  ! --- k-max: span wall
+      -3                ! face direction (k-max)
+       1  107           ! i-range (nodes)
+       1   61           ! j-range (nodes)
+       3    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient
+! ==================== block 3: channel background 3.5 mm, 98 x 70 x 3 nodes
+       6                ! number of boundary surfaces of block 3
+  ! --- i-min: inlet x = -0.077 m
+       1                ! face direction (i-min)
+       1    1           ! i-range (nodes)
+       1   70           ! j-range (nodes)
+       1    3           ! k-range (nodes)
+       1   1.385       ! u: Dirichlet 1.385 m/s (inflow)
+       1   0.000       ! v: Dirichlet 0
+       1   0.000       ! w: Dirichlet 0
+       0   0.0         ! p: zero gradient
+  ! --- i-max: outlet x = 0.261 m
+      -1                ! face direction (i-max)
+      98   98           ! i-range (nodes)
+       1   70           ! j-range (nodes)
+       1    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient
+       0   0.0         ! v: zero gradient
+       0   0.0         ! w: zero gradient
+       1   0.000       ! p: Dirichlet 0 Pa
+  ! --- j-min: channel wall y = -0.12 m (slip)
+       2                ! face direction (j-min)
+       1   98           ! i-range (nodes)
+       1    1           ! j-range (nodes)
+       1    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       1   0.000       ! v: Dirichlet 0 (impermeable)
+       0   0.0         ! w: zero gradient (free slip)
+       0   0.0         ! p: zero gradient
+  ! --- j-max: channel wall y = +0.12 m (slip)
+      -2                ! face direction (j-max)
+       1   98           ! i-range (nodes)
+      70   70           ! j-range (nodes)
+       1    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       1   0.000       ! v: Dirichlet 0 (impermeable)
+       0   0.0         ! w: zero gradient (free slip)
+       0   0.0         ! p: zero gradient
+  ! --- k-min: span wall
+       3                ! face direction (k-min)
+       1   98           ! i-range (nodes)
+       1   70           ! j-range (nodes)
+       1    1           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient
+  ! --- k-max: span wall
+      -3                ! face direction (k-max)
+       1   98           ! i-range (nodes)
+       1   70           ! j-range (nodes)
+       3    3           ! k-range (nodes)
+       0   0.0         ! u: zero gradient (free slip)
+       0   0.0         ! v: zero gradient (free slip)
+       1   0.000       ! w: Dirichlet 0 (impermeable)
+       0   0.0         ! p: zero gradient

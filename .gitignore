@@ -1,0 +1,9 @@
+*.o
+*.mod
+solver/probCFD
+solver/fsi_test
+*.rsto
+Volume_solutions_grids/
+Output_data/
+Check_grid_movement/
+*.bcs_b2b

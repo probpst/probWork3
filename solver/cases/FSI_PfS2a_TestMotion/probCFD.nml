@@ -1,0 +1,157 @@
+!=====================================================================
+! probCFD_부산 name list - FSI-PfS-2a: fixed cylinder with a flexible plate and rear mass (update 24)
+!   Kalmbach & Breuer (2013) J. Fluids Struct. 42, 369-387; Fabbri et al. (2023) Comput. Fluids 265, 105963
+!   D = 22 mm, u = 1.385 m/s (Re_D = 30470), para-rubber plate 50 x 2 mm (E 4.1 MPa, nu 0.48, rho 1090 kg/m3),
+!   steel rear mass 10 x 2 mm; measured: second swiveling mode, f = 11.25 Hz, tip amplitude dy/D = 0.65.
+!   Quasi-2-D sandbox grid (span 0.4 mm, 2 cells: thin, so that no spanwise mode can grow); 3 overset blocks.
+!=====================================================================
+
+$Case_title
+  Mode                 = 0              !0 standard run, 1 restart from the latest <case>_NNNNNNNN.rsto
+  Case_name            = "FSI_PfS2a"
+/end
+
+$Control
+ Char_L                = 0.022          !cylinder diameter [m]
+ Char_U                = 1.385          !inflow [m/s]
+ Del_T                 = 5.0e-04        !time step [s]
+ End_T                 = 0.175
+ FreeSurf_Z            = 0.0
+ Grvty                 = 0, 0, 0        !single phase, horizontal plane: no gravity
+/end
+
+$Fluid_Properties
+ Num_of_Phase          = 1
+ Lou_w                 = 1000.0         !water
+ mu_w                  = 0.001
+ Lou_a                 = 1.2
+ mu_a                  = 0.000018
+/end
+
+$Reference_Pressure
+ SW_Ref_Prs            = 0              !the outlet has p = 0
+ Loc_X                 = 0.0
+ Loc_Y                 = 0.0
+ Loc_Z                 = 0.0
+ RefPrs                = 0.0
+/end
+
+$Cell_Initial_Condition
+ u_cel_initial         = 1.385          !channel flow from the start (the inflow ramps over t_ramp from this value: a running start)
+ v_cel_initial         = 0.0
+ w_cel_initial         = 0.0
+ a_cel_initial         = 0.0
+ p_cel_initial         = 0.0
+/end
+
+$Solver_Iteration
+ Iner_Itn              = 1              !the FSI sub-iterations repeat the fractional step (FSI_Max_Iter)
+ Time_scheme           = 1
+ Max_Itr_Vel           = 200
+ Min_Itr_Vel           = 1
+ Rsd_Lmt_Vel           = 1.0e-9
+ SOR_fct_Vel           = 0.8
+ Max_Itr_Prs           = 20000
+ Min_Itr_Prs           = 1
+ Trl_Lmt_Prs           = 1.0e-7
+ Rsd_Lmt_Prs           = 1.0e-4        !the plate is very compliant (0.3 mm per Pa statically): a tighter tolerance only adds sub-iterations; 1e-5 costs 2 x the CG iterations on the thin-span grid for the same coupling residual
+ SOR_fct_Prs           = 1.0
+ Max_Itr_VoF           = 200
+ Min_Itr_VoF           = 1
+ Rsd_Lmt_VoF           = 1.0e-9
+ SOR_fct_VoF           = 1.0
+/end
+
+$Export_Interval
+ Output_Intvl          = 40            !volume + surface files every 20 ms
+ SW_Prs_Frc_surf       = 1              !wall surface files (pressure / friction + Disp_x/y/z, vonMises of the flexible plate)
+ Frame_Prs_Frc_surf    = 0
+ Restart_Intvl         = 20             !restart file every 20 steps (the sandbox runs the case in chunks)
+ Data_Intvl            = 1
+ Log_Intvl             = 20
+/end
+
+$Numerical_Scheme
+ Cnvt_scheme           = 2              !2nd-order upwind
+ curvi_form            = 1
+ Cnvt_mode             = 3
+ Dffs_mode             = 3
+ SW_Quasi_2D           = 3              !strictly two-dimensional (update 24c): spanwise velocity 0, fields averaged across the span
+                                        !  (a laminar thin-span run still grew a spanwise mode of w from the cylinder's separation line)
+ cfl_switch            = 0.3
+ vn_switch             = 0.5
+ poi_solver            = 2
+ poi_precond           = 2
+ vof_scheme            = 2
+ vof_cfl_max           = 0.5
+ t_ramp                = 0.0
+ b2b_tol               = 1.0e-8
+/end
+ TURB_model            = 0              !laminar NS on the quasi-2-D grid (the paper: LES on 40 M cells; SST on the thin
+                                        !  span grew a spanwise mode at the cylinder's separation and doubled the cost)
+ IDDES_model           = 0
+ Max_Itr_Turb          = 20
+ Min_Itr_Turb          = 1
+ Rsd_Lmt_Turb          = 1.0e-4
+ SOR_fct_Turb          = 1.0
+ Cnvt_scheme_Turb      = 1
+ Cnvt_mode_Turb        = 2
+ Dffs_mode_Turb        = 2
+ cfl_switch_Turb       = 0.5
+ vn_switch_Turb        = 0.5
+
+$Overset
+ SW_Ovst               = -1
+ Surfovl_tol           = 1.0e-5
+ Ovst_fringe           = 2
+ Ovst_vol_tol          = 1.0e-6
+ Ovst_Reassemble_Tol   = 0.0002         !re-assembly when the plate has moved 0.2 mm since the last assembly (update 20 / 24)
+ Ovst_only             = 0
+ Ovst_inner_max        = 150
+ Ovst_inner_tol        = 1.0e-1         !thin-span (quasi-2-D) grid: the inner coupled solve does not reach 1e-2 within Ovst_inner_max,
+                                        !  and 1e-1 changes the forces by < 0.1 %
+ poi_verbose           = 0
+/end
+
+$SixDOF
+ Body                  = 1              !cylinder + plate: ONE flexible body (24c), fixed in space - the cylinder part clamped
+ Mass                  = 0.0            !computed from Density and the enclosed volume
+ CG                    = 0.0375 0.0 0.0
+ Rot_Center            = 0.0  0.0  0.0
+ Motion_DOF            = 0 0 0 0 0 0
+ Inertia               = 1e-6 1e-6 1e-6
+!---- fluid-structure interaction (update 24) ----
+ SW_FSI                = 1              !0 rigid (default) / 1 flexible
+ Youngs_modulus        = 4.1e6          !para-rubber [Pa]
+ Poisson_ratio         = 0.48
+ Density               = 1090.0         !kg/m3 (Mass is then computed = Density x enclosed volume)
+ Num_NoFSI_Group       = 2              !clamped node groups: the cylinder surface (block 1, j = 1 wall)
+ NoFSI_block_num1      = 1
+ NoFSI_i_range1        = 1, 37
+ NoFSI_j_range1        = 1
+ NoFSI_k_range1        = 1, 3
+ NoFSI_block_num2      = 1
+ NoFSI_i_range2        = 165, 201
+ NoFSI_j_range2        = 1
+ NoFSI_k_range2        = 1, 3
+ Num_FSI_Submat_regions = 1             !the steel rear mass (x >= 0.061 m)
+ Submat_block_num1     = 1
+ Submat_i_range1       = 90, 112
+ Submat_j_range1       = 1
+ Submat_k_range1       = 1, 3
+ Submat_Density1       = 7850.0
+ Submat_Youngs_modulus1 = 2.1e11
+ Submat_Poisson_ratio1 = 0.3
+ FSI_Start_T           = 0.05            !the imposed motion starts after 50 ms of developing flow
+ Damping_ratio         = 0.0
+ FSI_Min_Thickness     = 0.01
+ FSI_Max_Iter          = 5              !sub-iterations per step (the sandbox run reaches 2e-3 - 1e-2 of the step increment in 5; 6-8 gain little)
+ FSI_Tol               = 5.0e-4         !as Fabbri et al. (2023), Eq. (23)
+ FSI_Relax             = 0.4
+ FSI_Mode              = 1
+ FSI_Plane_Strain      = 3              !quasi-2-D: cylindrical bending only (no spanwise displacement, rotation about z only)
+ FSI_Test_Motion       = 0.022, 11.25   !VERIFICATION: imposed bending mode, 22 mm (1 D) at the tip, 11.25 Hz, ramped over one period - the structure is not solved
+ FSI_Monitor_node1     = 1, 87, 1, 2    !upper wall node 2 mm before the rubber end (x = 0.059), mid-span: the paper's probe
+ FSI_Monitor_node2     = 1, 101, 1, 2    !the trailing end of the rear mass, mid-span
+ Body_End              = -1
+/end

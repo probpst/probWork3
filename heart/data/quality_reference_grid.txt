@@ -1,0 +1,5 @@
+cells 949,295 neg 0
+  scaled Jacobian: min 0.046  p1 0.456  median 0.989
+  non-orthogonality deg: median 5.9  p95 33.4  p99.9 66.9  max 89.7
+  aspect ratio: median 1.79  p95 4.37  p99 6.54  max 422.0
+  neighbour size ratio: p95 1.095  p99 1.310  max 276.63

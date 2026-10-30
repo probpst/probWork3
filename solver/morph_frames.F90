@@ -38,6 +38,7 @@ module morph_frames
             frames_check_nodes, frames_info, frames_nparts, frames_time
 
   integer, parameter :: NSLOT = 4
+  integer, parameter :: FRAM_MAGIC = 1179795789          ! 0x4652414D = 'FRAM' little-endian
 
   type :: fblk_t
      logical :: on = .false.
@@ -167,7 +168,7 @@ contains
     open(newunit=fp(ip)%iu, file=trim(fp(ip)%file), access='stream', form='unformatted', status='old', action='read', iostat=ios)
     if (ios /= 0) call frames_abort('cannot open the frame file '//trim(fp(ip)%file))
     read(fp(ip)%iu, iostat=ios) magic, ver, nbf, nf, per, period, scale
-    if (ios /= 0 .or. magic /= 1179210061) call frames_abort(trim(fp(ip)%file)//' is not a probCFD frame file (magic FRAM)')
+    if (ios /= 0 .or. magic /= FRAM_MAGIC) call frames_abort(trim(fp(ip)%file)//' is not a probCFD frame file (magic FRAM)')
     if (ver /= 1) call frames_abort(trim(fp(ip)%file)//': unknown version')
     if (nbf /= nblk) then
        write(s1,'(I0)') nbf;  write(s2,'(I0)') nblk

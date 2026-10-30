@@ -1,0 +1,6 @@
+probCFD polyMesh Input,block-1,block-2
+i_split,1,1
+j_split,1,1
+k_split,1,1
+n_of_BLK,1,1
+Object_ID,1,1

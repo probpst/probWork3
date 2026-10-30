@@ -212,6 +212,16 @@ module global_vars
   procedure(fsi_morph_if), pointer :: fsi_morph_fn => null()
   procedure(fsi_hvel_if),  pointer :: fsi_hvel_fn  => null()
   procedure(fsi_flux_if),  pointer :: fsi_flux_fn  => null()
+  ! prescribed grid deformation from frame files (heart extension H1, morph_frames.F90): the node
+  ! coordinates of the frame parts at time t (Mode = 2 grid-movement check, sixdof.F90)
+  logical :: frames_on = .false.
+  abstract interface
+     subroutine frames_nodes_if(t)
+       import :: dp
+       real(dp), intent(in) :: t
+     end subroutine frames_nodes_if
+  end interface
+  procedure(frames_nodes_if), pointer :: frames_nodes_fn => null()
   ! energy equation (update 16): the physical-boundary ghost values of T
   ! (Dirichlet / heat flux / convective) are set by energy.F90 after the
   ! generic apply_bc (zero gradient) inside refresh_all(20)

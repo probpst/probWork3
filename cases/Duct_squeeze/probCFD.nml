@@ -1,0 +1,92 @@
+!=====================================================================
+! probCFD name list - Duct squeeze: verification of the prescribed grid deformation (H1)
+!=====================================================================
+$Case_title
+  Mode                 = 0            !0 run, 1 restart, 2 grid-movement check (frames) -> Check_grid_movement/
+  Case_name            = "Duct"
+/end
+$Control
+ Char_L                = 0.02
+ Char_U                = 0.1686
+ Del_T                 = 0.001
+ End_T                 = 0.5
+ FreeSurf_Z            = 0.0
+ Grvty                 = 0, 0, 0
+/end
+$Fluid_Properties
+ Num_of_Phase          = 1
+ Lou_w                 = 1000.0
+ mu_w                  = 0.001
+ Lou_a                 = 1.2
+ mu_a                  = 0.000018
+/end
+$Reference_Pressure
+ SW_Ref_Prs            = 0
+ Loc_X                 = 0.0
+ Loc_Y                 = 0.0
+ Loc_Z                 = 0.0
+ RefPrs                = 0.0
+/end
+$Cell_Initial_Condition
+ u_cel_initial         = 0.0
+ v_cel_initial         = 0.0
+ w_cel_initial         = 0.0
+ a_cel_initial         = 0.0
+ p_cel_initial         = 0.0
+/end
+$Solver_Iteration
+ Iner_Itn              = 1
+ Time_scheme           = 1
+ Max_Itr_Vel           = 200
+ Min_Itr_Vel           = 1
+ Rsd_Lmt_Vel           = 1.0e-9
+ SOR_fct_Vel           = 0.8
+ Max_Itr_Prs           = 20000
+ Min_Itr_Prs           = 1
+ Trl_Lmt_Prs           = 1.0e-7
+ Rsd_Lmt_Prs           = 1.0e-6
+ SOR_fct_Prs           = 1.0
+ Max_Itr_VoF           = 200
+ Min_Itr_VoF           = 1
+ Rsd_Lmt_VoF           = 1.0e-9
+ SOR_fct_VoF           = 1.0
+/end
+$Export_Interval
+ Output_Intvl          = 25
+ SW_Prs_Frc_surf       = 0
+ Frame_Prs_Frc_surf    = 0
+ Restart_Intvl         = 0
+ Data_Intvl            = 1
+ Log_Intvl             = 25
+/end
+$Numerical_Scheme
+ Cnvt_scheme           = 2
+ curvi_form            = 1
+ Cnvt_mode             = 3
+ Dffs_mode             = 3
+ cfl_switch            = 0.3
+ vn_switch             = 0.5
+ poi_solver            = 2
+ poi_precond           = 2
+ vof_scheme            = 2
+ vof_cfl_max           = 0.5
+ t_ramp                = 0.0
+ b2b_tol               = 1.0e-8
+ TURB_model            = 0
+ IDDES_model           = 0
+/end
+$Overset
+ SW_Ovst               = 0
+/end
+$SixDOF
+ Body                  = 1              !the whole duct: one part with the prescribed deformation
+ Mass                  = 1.0
+ CG                    = 0.05 0.0 0.0
+ Rot_Center            = 0.05 0.0 0.0
+ Motion_DOF            = 0 0 0 0 0 0
+ Inertia               = 1e-6 1e-6 1e-6
+ SW_FSI                = 1
+ FSI_Frames            = "Duct_frames.bin"
+ FSI_Frames_Interp     = 3
+ Body_End              = -1
+/end

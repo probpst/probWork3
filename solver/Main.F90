@@ -82,6 +82,7 @@ program probCFD_main
   use probes, only: probe_init, probe_export, probe_finalize
   use surface_output, only: surf_write
   use statistics, only: stat_init, stat_sample, stat_write, stat_finalize, stat_summary
+  use morph_frames, only: frames_hooks
   use fsi, only: fsi_init, fsi_predict, fsi_iterate, fsi_finish_step, fsi_monitor, fsi_summary, fsi_finalize, fsi_max_iterations
   implicit none
 
@@ -104,6 +105,7 @@ program probCFD_main
   call read_split_csv       ! per-block i/j/k MPI splitting: N columns,
                             ! CPUs per block in row 5, total = sum(row 5)
   call sixdof_precheck      ! 6-DoF parts (rows 6-8 + $SixDOF): data, imposed files (before the assembly)
+  call frames_hooks         ! prescribed grid deformation from frame files (heart extension H1): headers, initial grid
   if (run_mode == 2) call sixdof_check_movement   ! Mode = 2: grid-movement check of the imposed motions, then stop
   call mpi_assign_domains   ! build the sub-domains and allocate the CPUs
   call read_bcs             ! physical BCs, per block (+ periodic)

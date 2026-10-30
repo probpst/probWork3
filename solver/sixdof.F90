@@ -174,6 +174,12 @@ module sixdof
      real(dp) :: test_amp = 0.0_dp, test_freq = 0.0_dp   ! FSI_Test_Motion: imposed bending mode (verification / start-up aid, 24c)
      integer  :: test_mode = 0                ! FSI_Test_Motion 3rd value: 0 oscillation, 1 ramp to a static deflection and hold, 2 pluck (release at 2.25 periods)
      integer  :: test_shp = 0                 ! FSI_Test_Motion 4th value (mode 2): 0 the static tip-load shape, m >= 1 the m-th vibration mode in vacuum
+     ! prescribed deformation from frame files (heart extension H1, morph_frames.F90)
+     character(len=256) :: frames = ' '       ! FSI_Frames: the frame file (the part has no structure)
+     integer  :: fr_interp = 3                ! FSI_Frames_Interp: 3 cubic Hermite, 1 linear
+     real(dp) :: fr_period = 0.0_dp           ! FSI_Frames_Period [s] (0: the file's)
+     real(dp) :: fr_scale = 0.0_dp            ! FSI_Frames_Scale (m per file unit; 0: the file's)
+     real(dp) :: fr_t0 = 0.0_dp               ! FSI_Frames_Time0 [s]: frame time = solver time + Time0
   end type fsidef_t
 
   type :: body_t
@@ -418,7 +424,8 @@ contains
     select case (nm)
     case ('sw_fsi', 'youngs_modulus', 'poisson_ratio', 'density', 'num_nofsi_group', 'num_fsi_submat_regions', &
           'fsi_start_t', 'damping_ratio', 'fsi_min_thickness', 'fsi_max_iter', 'fsi_tol', 'fsi_relax', 'fsi_mode', &
-          'fsi_plane_strain', 'fsi_test_motion')
+          'fsi_plane_strain', 'fsi_test_motion', 'fsi_frames', 'fsi_frames_interp', 'fsi_frames_period', 'fsi_frames_scale', &
+          'fsi_frames_time0')
        fsi_key = .true.
     case default
        if (len(nm) > 6) then
@@ -443,12 +450,23 @@ contains
     integer :: i, io, n, ax, p
     character(len=64) :: key
     ok = .true.
+    if (nm == 'fsi_frames') then                          ! frame file (heart extension H1): a string value
+       if (nv < 1) call nml_abort('FSI_Frames needs the frame file name')
+       f%frames = adjustl(vals(1))
+       if (f%frames(1:1) == '"' .or. f%frames(1:1) == "'") f%frames = f%frames(2:len_trim(f%frames)-1)
+       return
+    end if
     r = 0.0_dp
     do i = 1, min(nv, 8)
        read(vals(i), *, iostat=io) r(i)
        if (io /= 0) call nml_abort('"'//trim(nm)//'": value '//trim(vals(i))//' is not a number')
     end do
     select case (nm)
+    case ('fsi_frames_interp');      f%fr_interp = nint(r(1))
+       if (f%fr_interp /= 1 .and. f%fr_interp /= 3) call nml_abort('FSI_Frames_Interp must be 1 (linear) or 3 (cubic Hermite)')
+    case ('fsi_frames_period');      f%fr_period = r(1)
+    case ('fsi_frames_scale');       f%fr_scale = r(1)
+    case ('fsi_frames_time0');       f%fr_t0 = r(1)
     case ('sw_fsi');                 f%sw = nint(r(1))
        if (f%sw /= 0 .and. f%sw /= 1) call nml_abort('SW_FSI must be 0 or 1')
     case ('youngs_modulus');         f%E = r(1)
@@ -908,6 +926,7 @@ contains
     any_imposed_entry = .false.
     do i = 1, nent
        if (any(ent(i)%dof == 1)) any_imposed_entry = .true.
+       if (len_trim(ent(i)%fsi%frames) > 0) any_imposed_entry = .true.   ! prescribed deformation (H1)
     end do
   end function any_imposed_entry
 
@@ -954,6 +973,10 @@ contains
           trim(casename)//'_NNNNNNNN.grd + .q (PLOT3D solution file with TIME = t: load the pairs together in Tecplot)'
        write(*,'(A,I0,A,I0,A)') '  imposed parts    : ', nimp, ' of ', nbd, ' (free DOFs are held at zero; fixed children move with their mothers)'
        do k = 1, nbd
+          if (len_trim(bd(k)%fsi%frames) > 0) write(*,'(A)') '    '//part_name(k)//': prescribed deformation from frame file '// &
+             trim(bd(k)%fsi%frames)//' (H1)'
+       end do
+       do k = 1, nbd
           if (any(bd(k)%dof == 1)) write(*,'(A,6I2,A)') '    '//part_name(k)//': Motion_DOF ', bd(k)%dof, '  table '//trim(bd(k)%mfile)
        end do
        inquire(file=cdir//'.', exist=ex)
@@ -981,6 +1004,7 @@ contains
        end do
        if (mod(istep, out_interval) /= 0 .and. istep /= nst) cycle
        call move_nodes_only
+       if (associated(frames_nodes_fn)) call frames_nodes_fn(t)      ! prescribed deformation of the frame parts (H1)
        call write_grid_to(istep, cdir)
        call write_check_q(istep, t, cdir)
        nout = nout + 1

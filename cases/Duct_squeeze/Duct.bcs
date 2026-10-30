@@ -1,0 +1,84 @@
+! Duct squeeze test: closed end x = 0, moving side walls, pressure outlet x = L
+2
+5   ! block 1
+1   ! closed end
+1 1
+1 21
+1 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+2   ! j-min wall
+1 21
+1 1
+1 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+-2   ! j-max wall
+1 21
+21 21
+1 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+3   ! k-min wall
+1 21
+1 21
+1 1
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+-3   ! k-max wall
+1 21
+1 21
+21 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+5   ! block 2
+2   ! j-min wall
+1 21
+1 1
+1 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+-2   ! j-max wall
+1 21
+21 21
+1 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+3   ! k-min wall
+1 21
+1 21
+1 1
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+-3   ! k-max wall
+1 21
+1 21
+21 21
+1 0.0   ! u no-slip
+1 0.0   ! v
+1 0.0   ! w
+0 0.0   ! p zero gradient
+-1   ! pressure outlet
+21 21
+1 21
+1 21
+0 0.0   ! u zero gradient
+0 0.0   ! v
+0 0.0   ! w
+1 0.0   ! p Dirichlet 0 Pa

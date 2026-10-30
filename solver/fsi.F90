@@ -91,6 +91,7 @@ module fsi
   use curvi, only: fill_ghost_coords, metrics_domain, cart_to_contra
   use b2b_runtime, only: refresh_uvw
   use mom_ops, only: sync_face_jacobian
+  use morph_frames, only: frames_part, frames_blk, frames_morph, frames_hvel, frames_commit, frames_info
   implicit none
   private
   public :: fsi_init, fsi_predict, fsi_iterate, fsi_finish_step, fsi_export, fsi_restart_write, fsi_restart_read, &
@@ -259,6 +260,18 @@ contains
        if (def%sw /= 1) cycle
        ip = ip + 1
        pt(ip)%k = k;  pt(ip)%def = def
+       if (frames_part(k) > 0) then
+          ! prescribed deformation from a frame file (heart extension H1, morph_frames.F90): no structure,
+          ! no coupling; every block of the part morphs (fsi_blk) and the moving-grid machinery is shared
+          pt(ip)%def%start_t = huge(1.0_dp)
+          pt(ip)%nsheet = 0;  allocate(pt(ip)%sheet(0))
+          do b = 1, nblk
+             if (blk_obj(b) == k) fsi_blk(b) = .true.
+          end do
+          if (any(def%mon(1,1:max(def%nmon,1)) > 0) .and. def%nmon > 0) call fsi_abort(sixdof_part_name(k)// &
+             ': FSI_Monitor_node is not available with FSI_Frames')
+          cycle
+       end if
        if (def%E <= 0.0_dp) call fsi_abort(sixdof_part_name(k)//': SW_FSI = 1 needs Youngs_modulus > 0')
        if (def%nu < 0.0_dp .or. def%nu >= 0.5_dp) call fsi_abort(sixdof_part_name(k)//': Poisson_ratio must be 0 <= nu < 0.5')
        ! sheets: the wall patches of the part's blocks
@@ -306,10 +319,16 @@ contains
        write(*,'(A)') ' '
        write(*,'(A)') ' ---------------- fluid-structure interaction (update 24) ----------------'
        do ip = 1, npart
-          call print_part(pt(ip))
+          if (frames_part(pt(ip)%k) > 0) then
+             call frames_info(pt(ip)%k)
+          else
+             call print_part(pt(ip))
+          end if
        end do
-       write(*,'(A)') '  coupling: strong (sub-iterations with Aitken relaxation inside every time step), the structure'
-       write(*,'(A)') '            in the part frame, the fluid grid of the part morphed and the overset re-assembled'
+       if (any([(frames_part(pt(ip)%k) == 0, ip = 1, npart)])) then
+          write(*,'(A)') '  coupling: strong (sub-iterations with Aitken relaxation inside every time step), the structure'
+          write(*,'(A)') '            in the part frame, the fluid grid of the part morphed and the overset re-assembled'
+       end if
     end if
     is = 0;  ierr = 0
   end subroutine fsi_init
@@ -1296,6 +1315,10 @@ contains
     type(sheet_t), pointer :: s
     if (.not. inited) return
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) then              ! prescribed deformation (H1): coordinates and grid velocity from the frames
+          call frames_morph(pt(ip)%k, restoring)
+          cycle
+       end if
        call sixdof_frame_kin(pt(ip)%k, Rg, O0, dg, vG, aG, omG, alG)
        do is = 1, pt(ip)%nsheet
           s => pt(ip)%sheet(is)
@@ -1545,6 +1568,9 @@ contains
     integer, intent(in) :: b, h(3)
     real(dp) :: ug(3)
     integer :: hh(3)
+    if (frames_blk(b)) then                             ! prescribed deformation (H1)
+       ug = frames_hvel(b, h);  return
+    end if
     hh(1) = min(max(h(1), 1), 2*blk(b)%ni - 1)
     hh(2) = min(max(h(2), 1), 2*blk(b)%nj - 1)
     hh(3) = min(max(h(3), 1), 2*blk(b)%nk - 1)
@@ -1635,6 +1661,10 @@ contains
     if (any(t >= pt(1:npart)%def%start_t - 1.0e-12_dp)) call save_level_n
     do ip = 1, npart
        p => pt(ip)
+       if (frames_part(p%k) > 0) then                   ! prescribed deformation (H1): no structure, no coupling
+          p%active = .false.;  p%converged = .true.;  p%iter = 0
+          cycle
+       end if
        p%active = (t >= p%def%start_t - 1.0e-12_dp)
        p%iter = 0;  p%converged = .false.;  p%omega = p%def%relax;  p%rprev = 0.0_dp
        if (p%active .and. p%def%mode == 1) then
@@ -2303,6 +2333,7 @@ contains
        end if
     end do
     has_prev_vel = .true.
+    call frames_commit                                  ! prescribed deformation (H1): previous coordinates
     do b = 1, nblk
        if (.not. mb(b)%on) cycle
        do k = 1, blk(b)%nk
@@ -2510,6 +2541,10 @@ contains
     do ip = 1, npart
        p => pt(ip)
        write(*,'(A)') ' '
+       if (frames_part(p%k) > 0) then
+          write(*,'(A,ES12.5,A)') ' [ FSI ] '//sixdof_part_name(p%k)//': prescribed deformation (frame file), grid at t = ', t_now, ' s'
+          cycle
+       end if
        if (.not. p%active) then
           write(*,'(A,ES10.3,A)') ' [ FSI ] '//sixdof_part_name(p%k)//': structure held until FSI_Start_T = ', p%def%start_t, ' s'
           cycle
@@ -2614,6 +2649,9 @@ contains
     end if
     write(iu) npart
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) then              ! prescribed deformation (H1): the grid is a function of time
+          write(iu) 0, merge(1, 0, has_prev_vel);  cycle
+       end if
        write(iu) pt(ip)%sh%nn, merge(1, 0, has_prev_vel)
        write(iu) pt(ip)%sh%u;  write(iu) pt(ip)%sh%v;  write(iu) pt(ip)%sh%a;  write(iu) pt(ip)%sh%fext_n
        write(iu) pt(ip)%vprev
@@ -2624,11 +2662,13 @@ contains
     ! is morphed with it, so that a restart continues from the same grid
     write(iu) 2401
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) cycle
        write(iu) pt(ip)%drel
     end do
     ! 24c: the discrete velocity of the last step (predictor)
     write(iu) 2402
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) cycle
        write(iu) pt(ip)%vd
     end do
   end subroutine fsi_restart_write
@@ -2661,6 +2701,9 @@ contains
        call MPI_Bcast(nn, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
        call MPI_Bcast(hp, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
        if (nn < 0) return
+       if (frames_part(pt(ip)%k) > 0) then              ! prescribed deformation (H1): nothing stored
+          has_prev_vel = (hp == 1);  cycle
+       end if
        if (myrank == 0) then
           read(iu) pt(ip)%sh%u;  read(iu) pt(ip)%sh%v;  read(iu) pt(ip)%sh%a;  read(iu) pt(ip)%sh%fext_n
           read(iu) pt(ip)%vprev
@@ -2687,6 +2730,7 @@ contains
     end if
     call MPI_Bcast(hp, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) cycle
        if (hp == 2401) then
           if (myrank == 0) read(iu) pt(ip)%drel
           call MPI_Bcast(pt(ip)%drel, 6*pt(ip)%sh%nn, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
@@ -2703,6 +2747,7 @@ contains
     end if
     call MPI_Bcast(hp, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     do ip = 1, npart
+       if (frames_part(pt(ip)%k) > 0) cycle
        if (hp == 2402) then
           if (myrank == 0) read(iu) pt(ip)%vd
           call MPI_Bcast(pt(ip)%vd, 6*pt(ip)%sh%nn, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)

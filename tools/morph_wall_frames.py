@@ -53,6 +53,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--hg', required=True); ap.add_argument('--cyc', required=True); ap.add_argument('--bmesh', required=True)
     ap.add_argument('--wall', required=True); ap.add_argument('--out', required=True); ap.add_argument('--workers', type=int, default=1)
+    ap.add_argument('--sliver-edge', type=float, default=0.1, help='after the morph: average the displacement of the nodes joined by '
+                    'reference edges shorter than this [mm] (sliver cells at the branch inlets; 0 = off; see sliver_fix.py)')
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     fidx, times, W = load_wall(args.wall); nf = len(fidx); del W
@@ -74,9 +76,33 @@ def main():
         fo.write('frame,time_s,neg,minJ,below005,mid_neg,mid_minJ,sec\n')
         for r in rows: fo.write(','.join(r[k] for k in ['frame','time_s','neg','minJ','below005','mid_neg','mid_minJ','sec']) + '\n')
     neg = max(int(r['neg']) for r in rows); mneg = max(int(r['mid_neg']) for r in rows)
-    print(f'frames {len(rows)} / {nf}: inverted cells max {neg}, min scaled Jacobian {min(float(r["minJ"]) for r in rows):.4f}, '
+    print(f'raw morph: frames {len(rows)} / {nf}: inverted cells max {neg}, min scaled Jacobian {min(float(r["minJ"]) for r in rows):.4f}, '
           f'midpoint inverted max {mneg}')
-    if len(rows) == nf and neg == 0 and mneg == 0: print('ALL FRAMES VALID')
+    if len(rows) < nf: sys.exit('not all frames were produced')
+    if args.sliver_edge > 0:
+        # sliver fix (sliver_fix.py): the raw frames are kept in OUT/raw, the fixed ones replace OUT/disp_NNN.npy
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from sliver_fix import sliver_groups, apply_fix, jac
+        P = np.load(os.path.join(args.out, 'P0.npy')); cells = np.load(os.path.join(args.out, 'cells.npy'))
+        groups = sliver_groups(P, cells, args.sliver_edge)
+        raw = os.path.join(args.out, 'raw'); os.makedirs(raw, exist_ok=True)
+        prev = None; wmin = 1.0; wneg = 0; mmin = 1.0; mneg = 0; chg = 0.0
+        with open(os.path.join(args.out, 'frames_log_fixed.csv'), 'w') as fo:
+            fo.write('frame,time_s,neg,minJ,below005,mid_neg,mid_minJ\n')
+            for n in range(nf):
+                f = os.path.join(args.out, f'disp_{n:03d}.npy'); fr_ = os.path.join(raw, f'disp_{n:03d}.npy')
+                if not os.path.exists(fr_): os.replace(f, fr_)
+                D = np.load(fr_).astype(np.float64); Df = apply_fix(D, groups); chg = max(chg, float(np.abs(Df - D).max()))
+                J = jac(P + Df, cells); mn = -1; mj = float('nan')
+                if prev is not None:
+                    Jm = jac(P + 0.5 * (prev + Df), cells); mn = int((Jm <= 0).sum()); mj = float(Jm.min()); mmin = min(mmin, mj); mneg = max(mneg, mn)
+                np.save(f, Df.astype(np.float32)); prev = Df
+                wmin = min(wmin, float(J.min())); wneg = max(wneg, int((J <= 0).sum()))
+                fo.write(f'{n},{times[n]:.6f},{int((J<=0).sum())},{J.min():.5f},{int((J<0.05).sum())},{mn},{mj:.5f}\n')
+        print(f'sliver fix (edges < {args.sliver_edge} mm: {len(groups)} node groups, {sum(len(g) for g in groups)} nodes, max node change {chg:.4f} mm): '
+              f'inverted cells max {wneg}, min scaled Jacobian {wmin:.4f}, midpoints inverted max {mneg}, min {mmin:.4f}')
+        neg, mneg = wneg, mneg
+    if neg == 0 and mneg == 0: print('ALL FRAMES VALID')
 
 if __name__ == '__main__':
     main()

@@ -23,6 +23,9 @@ def main():
     ap.add_argument('--nframes', type=int, default=50); ap.add_argument('--dt', type=float, default=1e-3)
     ap.add_argument('--nranks', type=int, default=2); ap.add_argument('--end', type=float, default=0.0)
     ap.add_argument('--mode', type=int, default=0)
+    ap.add_argument('--valve', action='store_true', help='valve test: BOTH ends pressure outlets, a porous valve zone at '
+                    'x = 0.2-0.3 L closed during the first half period (squeeze) and open during the second (expansion)')
+    ap.add_argument('--valve-K', type=float, default=1e5)
     a = ap.parse_args()
     os.makedirs(a.outdir, exist_ok=True)
     L, h0, A, T = a.L, a.h0, a.A, a.T
@@ -53,7 +56,10 @@ def main():
     L1 = ['! Duct squeeze test: closed end x = 0, moving side walls, pressure outlet x = L', f'{nb}']
     sides = lambda: (wall(2, (1, ni), (1, 1), (1, nk), 'j-min wall') + wall(-2, (1, ni), (nj, nj), (1, nk), 'j-max wall') +
                      wall(3, (1, ni), (1, nj), (1, 1), 'k-min wall') + wall(-3, (1, ni), (1, nj), (nk, nk), 'k-max wall'))
-    L1 += ['5   ! block 1'] + wall(1, (1, 1), (1, nj), (1, nk), 'closed end') + sides()
+    if a.valve:
+        L1 += ['5   ! block 1'] + outlet(1, (1, 1), (1, nj), (1, nk), 'upstream end') + sides()
+    else:
+        L1 += ['5   ! block 1'] + wall(1, (1, 1), (1, nj), (1, nk), 'closed end') + sides()
     L1 += ['5   ! block 2'] + sides() + outlet(-1, (ni, ni), (1, nj), (1, nk), 'pressure outlet')
     open(os.path.join(a.outdir, 'Duct.bcs'), 'w').write('\n'.join(L1) + '\n')
     # ---- csv: one rank per block (or split block i-direction)
@@ -176,7 +182,30 @@ $SixDOF
  Body_End              = -1
 /end
 """
+    if a.valve:
+        # zone: cells of block 1 with centre x in [0.2 L, 0.3 L] (weight 1)
+        xc = 0.5 * (x1[1:] + x1[:-1]); sel = np.where((xc >= 0.2 * L) & (xc <= 0.3 * L))[0]
+        with open(os.path.join(a.outdir, 'valve_zone.dat'), 'w') as f:
+            f.write('# duct valve zone: block i j k weight (1-based cell indices)\n')
+            for i in sel:
+                for j in range(a.ny):
+                    for k in range(a.ny):
+                        f.write(f'1 {i + 1} {j + 1} {k + 1} 1.0\n')
+        nml += f"""$Valves
+ Num_Valves            = 1
+ Valve_Period          = {T}
+ Valve_name1           = "duct_valve"
+ Valve_file1           = "valve_zone.dat"
+ Valve_K1              = {a.valve_K:g}            !1/s: closed-valve resistance
+ Valve_open1           = 0.5, 1.0        !open during the expansion half (inflow from both ends), closed during the squeeze
+ Valve_ramp1           = 0.01
+ Valve_mode1           = 1
+/end
+"""
+        print(f'valve zone: {len(sel)} i-planes x {a.ny*a.ny} cells, closed for phase 0 .. 0.5')
     open(os.path.join(a.outdir, 'probCFD.nml'), 'w').write(nml)
+    json.dump(dict(json.load(open(os.path.join(a.outdir, 'duct_params.json'))), valve=bool(a.valve)),
+              open(os.path.join(a.outdir, 'duct_params.json'), 'w'), indent=1)
     print(f'wrote {a.outdir}: {nb} blocks of {ni}x{nj}x{nk} nodes, {2*nxb*a.ny*a.ny} cells, {a.nframes} frames, '
           f'U_outlet max {Umax:.3f} m/s, V0 {V(0)*1e6:.2f} mL, Vmin {min(V(t) for t in np.linspace(0,T,400))*1e6:.2f} mL')
 

@@ -85,6 +85,26 @@ if os.path.exists(pf):
           f'vs exact {(V(tt[0]) - V(tt[-1]))*1e6:.4f} mL')
     for i in range(0, len(F), max(1, len(F) // 10)):
         print(f'  t {tt[i]:8.4f}  Q_out {Q[i]*1e6:10.4f} mL/s  -dV/dt {qe[i]*1e6:10.4f}  rel.err {((Q[i]-qe[i])/qe[i] if abs(qe[i])>0.05*peak else float("nan")):9.2e}')
+    if P.get('valve') and F.shape[1] >= 5:
+        # columns: step, time, group 1 (upstream end), group 2 (outlet), sum.  Valve closed for phase 0..0.5:
+        hdr = [l for l in open(pf) if l.startswith('#   step')][0].split()
+        Qa = F[:, 2]; Qb = F[:, 3]; ph = (tt / T) % 1.0
+        closed = (ph > 0.03) & (ph < 0.47); opn = (ph > 0.53) & (ph < 0.97)
+        # the segment upstream of the valve (x < 0.25 L) also squeezes: its own -dV/dt leaves through the upstream end
+        xq = np.linspace(0, 0.25 * L, 2001)
+        def Vup(t):
+            st = np.sin(np.pi * t / T) ** 2
+            return h0 ** 2 * np.trapezoid((1 - A * np.sin(np.pi * xq / L) ** 2 * st) ** 2, xq)
+        dVup = np.gradient(np.array([Vup(x) for x in tt]), tt)
+        leak = Qa - (-dVup)
+        print(f'valve test: groups {hdr[3]} (upstream end, behind the valve) and {hdr[4]} (outlet)')
+        print(f'  closed phase (0.03-0.47): max |Q_upstream - (-dV_upstream/dt)| {np.abs(leak[closed]).max()*1e6:.4f} mL/s '
+              f'(leak through the valve) vs max |Q_outlet| {np.abs(Qb[closed]).max()*1e6:.4f} mL/s '
+              f'-> leak ratio {np.abs(leak[closed]).max()/max(np.abs(Qb[closed]).max(),1e-30):.3e}')
+        print(f'  open phase   (0.53-0.97): max |Q_upstream| {np.abs(Qa[opn]).max()*1e6:.4f} mL/s, max |Q_outlet| {np.abs(Qb[opn]).max()*1e6:.4f} mL/s')
+        vf = os.path.join(d, 'Output_data', 'Duct_valves.dat')
+        if os.path.exists(vf):
+            Vv = np.loadtxt(vf, comments='#'); print(f'  closure c: min {Vv[:,3].min():.3f} max {Vv[:,3].max():.3f}')
 cd = os.path.join(d, 'Check_grid_movement')
 if os.path.isdir(cd):
     print('Mode 2 grids:')

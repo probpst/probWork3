@@ -61,6 +61,7 @@
 module poisson_ops
   use global_vars
   use mpi_vars
+  use valves, only: valve_mob, valve_mob_h
   use mom_ops, only: xder, face_range, face_active, face_owned
   use b2b_runtime, only: exchange_faces
   use overset, only: dcel, e_ridx, ovs_val, ovs_dump_cell, ovs_ph
@@ -75,7 +76,7 @@ contains
   ! 1/rho_f-weighted coefficient at half position H
   pure real(dp) function Gr(q, l, H)
     integer, intent(in) :: q, l, H(3)
-    Gr = Gcap(q, l, H(1),H(2),H(3)) / rho_h(H(1),H(2),H(3))
+    Gr = Gcap(q, l, H(1),H(2),H(3)) / rho_h(H(1),H(2),H(3)) * valve_mob_h(q, H)   ! valve zone mobility (H2)
   end function Gr
 
   ! BALANCED directional pressure difference at the l-face of cell pt:
@@ -157,7 +158,7 @@ contains
                   if (l == q) cycle
                   s = s + Gcap(q,l,H(1),H(2),H(3))*Qavg(x, pt, q, l)
                end do
-               G(i,j,k) = s
+               G(i,j,k) = s*valve_mob(q, pt)                 ! valve zone: pressure flux x 1/(1 + K dt) (H2)
             end do
            end do
           end do
@@ -1389,6 +1390,7 @@ end subroutine solve_poisson
 ! star (BC) values.
 !-----------------------------------------------------------------------
 subroutine correct_velocity
+  use valves, only: valve_mob
   use global_vars
   use mpi_vars
   use b2b_runtime, only: refresh_uvw
@@ -1434,8 +1436,8 @@ subroutine correct_velocity
              ! directional differences Q_l (own-face density first, then
              ! corner average)
              dp1 = pbal(1);  dp2 = pbal(2);  dp3 = pbal(3)
-             uc(i,j,k) = usc(i,j,k) - dt*( mq(q,1,H(1),H(2),H(3))*dp1      &
-                       + mq(q,2,H(1),H(2),H(3))*dp2 + mq(q,3,H(1),H(2),H(3))*dp3 )
+             uc(i,j,k) = usc(i,j,k) - dt*valve_mob(q, pt)*( mq(q,1,H(1),H(2),H(3))*dp1      &
+                       + mq(q,2,H(1),H(2),H(3))*dp2 + mq(q,3,H(1),H(2),H(3))*dp3 )     ! valve mobility (H2)
           end do
          end do
         end do

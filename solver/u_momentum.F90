@@ -37,6 +37,7 @@
 !   interfaces are handled by the same machinery.
 !=======================================================================
 subroutine solve_momentum(iter_out, resmax, resavg)
+  use valves, only: valve_kf
   use global_vars
   use mpi_vars
   use b2b_runtime, only: refresh_uvw
@@ -120,7 +121,7 @@ subroutine solve_momentum(iter_out, resmax, resavg)
                 mc(19+q, i,j,k) = cm(q)*ap(q)/Jf
                 mc(22+q, i,j,k) = cm(q)*am(q)/Jf
              end do
-             mc(1,i,j,k) = 1.0_dp/dt + dsum
+             mc(1,i,j,k) = 1.0_dp/dt + dsum + valve_kf(c, pt)        ! valve zone: implicit sink K u (H2)
              dc = 0.0_dp
              if (Cnvt_scheme >= 2) then
                 do q = 1, 3

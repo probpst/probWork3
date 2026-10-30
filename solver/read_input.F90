@@ -27,6 +27,7 @@ subroutine read_namelist
   use global_vars
   use mpi_vars
   use sixdof, only: sixdof_nml, Moving_BGR, Moving_BGR_DoF, BGR_Following_Body, Moving_BGR_Filter_T
+  use valves, only: valve_nml
   use waves, only: wave_nml
   use force_model, only: force_nml, force_in_group
   use stop_criteria, only: stop_report_input, stop_clean
@@ -656,6 +657,8 @@ contains
        ! Force_model groups inside $SixDOF (update 19): every line between Force_model = n and Force_model_End = -1
        if (nm == 'force_model' .or. force_in_group()) call force_nml(nm, vals, nv, ok6)
        if (.not. ok6 .and. (trim(group) == 'sixdof' .or. nm == 'motion_start_t')) call sixdof_nml(nm, vals, nv, ok6)
+       ! $Valves (heart extension H2, valves.F90)
+       if (.not. ok6 .and. trim(group) == 'valves') call valve_nml(nm, vals, nv, ok6)
        ! $Wave (update 18, waves.F90)
        if (.not. ok6) call wave_nml(nm, vals, nv, ok6)
        if (.not. ok6) call nml_err_line('unknown variable "'//nm//'" (group $'//trim(group)//')')

@@ -84,6 +84,7 @@ program probCFD_main
   use statistics, only: stat_init, stat_sample, stat_write, stat_finalize, stat_summary
   use morph_frames, only: frames_hooks
   use patch_flux, only: patch_flux_init, patch_flux_export, patch_flux_finalize
+  use valves, only: valve_init, valve_update, valve_export, valve_finalize
   use fsi, only: fsi_init, fsi_predict, fsi_iterate, fsi_finish_step, fsi_monitor, fsi_summary, fsi_finalize, fsi_max_iterations
   implicit none
 
@@ -154,6 +155,7 @@ program probCFD_main
   call force_compute(0, 0.0_dp) !   sources and wrenches of the first step from the initial field
   call probe_init               ! volume-field probe points (update 22)
   call patch_flux_init          ! volume flux through the inlet / outlet patches (heart extension H1)
+  call valve_init               ! heart valves as porous zones (H2)
   call stat_init                ! turbulence statistics (update 23)
   ! --- Mode = 1: restart from the latest <case>_NNNNNNNN.rsto (update 13b)
   istep0 = 0;  t_now = 0.0_dp;  rvliq0 = -1.0_dp;  rclip = 0.0_dp
@@ -179,6 +181,7 @@ program probCFD_main
      call energy_export(0, 0.0_dp)
      call probe_export(0, 0.0_dp)
      call patch_flux_export(0, 0.0_dp)
+     call valve_export(0, 0.0_dp)
      call write_grid_plot3d(0)
      call write_solution(0)
      call surf_write(0)
@@ -240,6 +243,7 @@ program probCFD_main
      !     step: a body at rest reproduces the static solver exactly) -----
      call fsi_predict(istep, t)              ! flexible parts (update 24): predicted interface displacement
      call sixdof_advance(istep, t)
+     call valve_update(t)                    ! valve closure at the target time (H2)
 
      ! start-up ramp of the Dirichlet velocity BCs (inlets, moving walls)
      bc_ramp = 1.0_dp
@@ -437,6 +441,7 @@ program probCFD_main
      if (wave_on) call wave_export(istep, t)        ! wave probes (update 18)
      call probe_export(istep, t)                    ! volume-field probe points (update 22)
      call patch_flux_export(istep, t)               ! inlet / outlet volume fluxes (H1)
+     call valve_export(istep, t)
      call stat_sample(istep, t)                     ! turbulence statistics (update 23)
      call stat_write(istep, .false.)
      call cfl_numbers(cfl_tot, cfl_dir)
@@ -515,6 +520,7 @@ program probCFD_main
   call force_finalize
   call probe_finalize
   call patch_flux_finalize
+  call valve_finalize
   call stat_finalize
   call stop_report_normal(nstep, t_now)         ! Reason_for_stop.md: finished normally
   if (myrank == 0) then

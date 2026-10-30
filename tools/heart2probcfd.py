@@ -73,8 +73,18 @@ def main():
     ap.add_argument('--object-id', type=int, default=0, help='Object_ID row value for every block (0 = static background)')
     ap.add_argument('--scale', type=float, default=1e-3, help='grid units -> metres (mm: 1e-3)')
     ap.add_argument('--domains-per-rank', type=float, default=3.0, help='target sub-domains per rank (round-robin balance)')
+    ap.add_argument('--add-disp', help='global-node displacement .npy (N x 3, grid units) added to the nodes: the initial grid '
+                    'of the case is then the deformed state of that frame (needs --numbering)')
+    ap.add_argument('--numbering', help='node_numbering.npz (gid, inv) of the grid (with --add-disp)')
     a = ap.parse_args()
     G = read_g(a.grid) if a.grid.endswith('.g') else read_grd(a.grid)
+    if a.add_disp:
+        D = np.load(a.add_disp).astype(np.float64); inv = np.load(a.numbering)['inv']
+        off = np.concatenate([[0], np.cumsum([g[0].size for g in G])])
+        for b, g in enumerate(G):
+            I = inv[off[b]:off[b + 1]].reshape(g.shape[1:])
+            G[b] = g + np.moveaxis(D[I], -1, 0)
+        print(f'added the displacement of {os.path.basename(a.add_disp)} to the grid (max |d| {np.abs(D).max():.3f})')
     B = read_cfdship_bcs(a.bcs)
     assert len(G) == len(B), (len(G), len(B))
     os.makedirs(a.outdir, exist_ok=True)

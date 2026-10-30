@@ -22,6 +22,10 @@ def main():
     ap.add_argument('--char-u', type=float, default=1.0); ap.add_argument('--char-l', type=float, default=0.03)
     ap.add_argument('--output-intvl', type=int, default=50); ap.add_argument('--log-intvl', type=int, default=10)
     ap.add_argument('--turb', type=int, default=0)
+    ap.add_argument('--valves', help='directory with valve_{mitral,tricuspid,aortic,pulmonary}.dat zone files: adds the $Valves '
+                    'group with open windows derived from the LV / RV volume curves of the frame table')
+    ap.add_argument('--valve-K', type=float, default=1.0e6, help='closed-valve resistance [1/s]')
+    ap.add_argument('--valve-ramp', type=float, default=0.01, help='opening / closing ramp [s]')
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     T = 60.0 / a.bpm
@@ -129,6 +133,32 @@ $SixDOF
  Body_End              = -1
 /end
 """
+    if a.valves:
+        import shutil
+        t = np.array([float(r['time_s']) for r in rows]); s = np.array([float(r['phase_fraction']) for r in rows])
+        win = {}
+        for ch, (av, mv) in (('LV_target_mL', ('aortic', 'mitral')), ('RV_target_mL', ('pulmonary', 'tricuspid'))):
+            Vc = np.array([float(r[ch]) for r in rows])
+            tt = np.r_[t, T]; VV = np.r_[Vc, Vc[0]]; dV = np.gradient(VV, tt)[:-1]; thr = 0.02 * np.abs(dV).max()
+            ej = np.where(dV < -thr)[0]; fi = np.where(dV > thr)[0]
+            win[av] = (max(s[ej[0]] - 0.005, 0.0), s[ej[-1]] + 0.005)          # ejection: the outflow valve is open
+            win[mv] = (max(s[fi[0]] - 0.005, 0.0), 1.0)                         # filling to end-diastole: the inflow valve is open
+        vn = ['mitral', 'tricuspid', 'aortic', 'pulmonary']
+        for v in vn: shutil.copy(os.path.join(a.valves, f'valve_{v}.dat'), a.out)
+        g = f'''$Valves
+ Num_Valves            = 4
+ Valve_Period          = {T:.9f}
+'''
+        for i, v in enumerate(vn, 1):
+            g += f''' Valve_name{i}           = "{v}"
+ Valve_file{i}           = "valve_{v}.dat"
+ Valve_K{i}              = {a.valve_K:g}
+ Valve_open{i}           = {win[v][0]:.3f}, {win[v][1]:.3f}      !phase fractions (from the {'ejection' if v in ('aortic','pulmonary') else 'filling'} phase of the volume curve)
+ Valve_ramp{i}           = {a.valve_ramp}
+ Valve_mode{i}           = 1
+'''
+        nml += g + '/end\n'
+        print('valves:', {k: (round(v[0], 3), round(v[1], 3)) for k, v in win.items()})
     open(os.path.join(a.out, 'probCFD.nml'), 'w').write(nml)
     print('wrote', os.path.join(a.out, 'probCFD.nml'))
 
